@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>斯德哥爾摩 × 塔林 · 路線式行程規劃 v3</title>
+<style>
+  :root{
+    --paper:#ECEFEC; --card:#ffffff; --ink:#15323C; --soft:#52676E; --faint:#7E9097;
+    --line:#D6DDD9; --lock:#9AA3A0; --lockbg:#E7EAE7; --locktext:#8A938F;
+    --se:#5A7184;
+    --ferry:#2C3E45;
+    /* Tallinn */
+    --r-oldtown:#C0612B; --r-market:#3F7D54; --r-coast:#2E6E96; --r-trip:#5E7B3A; --r-helsinki:#5B5391;
+    /* Stockholm */
+    --s-gamla:#A8503F; --s-djur:#2F6B4F; --s-city:#46698A; --s-soder:#7A4E6D; --s-isl:#2E7D82; --s-drott:#8A6A2F;
+    --serif:"Iowan Old Style","Palatino Linotype","Palatino","Songti TC","Noto Serif CJK TC",serif;
+    --sans:"Avenir Next","Segoe UI","PingFang TC","Noto Sans CJK TC",system-ui,-apple-system,sans-serif;
+    --mono:"DIN Alternate","Roboto Mono",ui-monospace,SFMono-Regular,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;padding-bottom:64px}
+  .wrap{max-width:900px;margin:0 auto;padding:0 18px}
+
+  /* ---- masthead ---- */
+  header.top{padding:34px 0 18px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+  h1.mast{font-family:var(--serif);font-weight:600;font-size:clamp(30px,7vw,52px);line-height:1.02;margin:8px 0 4px;letter-spacing:-.01em}
+  h1.mast .x{color:var(--r-oldtown);font-style:italic;padding:0 .12em}
+  .mast-sub{color:var(--soft);font-size:15px;max-width:48ch}
+  .facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .facts .f{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 13px;min-width:74px}
+  .facts .n{font-family:var(--serif);font-size:19px;font-weight:600;line-height:1}
+  .facts .l{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:4px}
+
+  /* ---- generic section ---- */
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin:30px 0 14px;flex-wrap:wrap}
+  .sec-head h2{font-family:var(--serif);font-weight:600;font-size:23px;margin:0;letter-spacing:-.01em}
+  .sec-head .tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .note{color:var(--soft);font-size:13.5px;margin:-4px 0 14px}
+
+  .leg{display:flex;align-items:center;gap:11px;font-family:var(--mono);font-size:12.5px;letter-spacing:.05em;
+    color:#cfe0e4;background:var(--ferry);border-radius:12px;padding:12px 16px;margin:14px 0}
+  .leg .ico{font-size:17px}
+
+  /* ---- day-count selector (Tallinn only) ---- */
+  .counter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);
+    border-radius:13px;padding:13px 16px}
+  .counter .cl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{font-family:var(--mono);font-size:14px;border:0;background:transparent;color:var(--soft);
+    padding:8px 17px;cursor:pointer;border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--ink);color:#fff}
+
+  /* ---- day spine + cards ---- */
+  .days{margin-top:8px}
+  .day{position:relative;background:var(--card);border:1px solid var(--line);border-radius:15px;
+    padding:15px 17px 17px;margin:13px 0;border-left:6px solid var(--line);transition:border-color .35s ease}
+  .day[data-set="1"]{border-left-color:var(--dc,var(--line))}
+  .day .dh{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .daynum{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--faint);text-transform:uppercase}
+  .dsub{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--soft)}
+  .daytag{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;background:var(--paper);border:1px solid var(--line);
+    border-radius:6px;padding:2px 8px;color:var(--soft)}
+  .daytag.today{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .picker{flex:1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-width:200px}
+  select.dest{font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--paper);
+    border:1px solid var(--line);border-radius:9px;padding:8px 11px;max-width:100%}
+  .clearbtn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;background:transparent;border:0;
+    color:var(--faint);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+
+  .dest-body{margin-top:13px}
+  .dest-top{display:flex;gap:14px;align-items:flex-start}
+  .dest-thumb{flex:0 0 104px;height:78px;border-radius:10px;overflow:hidden;background:var(--dc,#ccc)}
+  .dest-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .dest-name{font-family:var(--serif);font-size:20px;line-height:1.1;margin:0 0 4px;color:var(--dc)}
+  .dest-en{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+  .foot{display:inline-block;font-size:12px;color:var(--soft);margin-top:6px;background:var(--paper);
+    border-radius:20px;padding:2px 10px}
+  .acts{margin:11px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+  .acts li{font-size:12.5px;color:var(--soft);background:var(--paper);border:1px solid var(--line);
+    border-radius:7px;padding:3px 9px}
+  .acts li.act{cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s,border-color .15s,transform .12s}
+  .acts li.act:hover{background:#fff;border-color:var(--dc)}
+  .acts li.act:active{transform:scale(.97)}
+  .acts .ai{font-size:11px;color:var(--dc);opacity:.85}
+
+  /* ---- food block inside a day ---- */
+  .food{margin-top:15px;border-top:1px dashed var(--line);padding-top:13px}
+  .food .fl{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+  .food .fl b{font-family:var(--serif);font-size:15.5px;font-weight:600}
+  .food .fl span{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+  .eat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media(max-width:520px){.eat-grid{grid-template-columns:1fr}}
+  .eat{text-align:left;border:1.5px solid var(--dc);border-radius:11px;padding:9px 11px;background:#fff;
+    cursor:pointer;transition:background .2s,transform .12s;display:flex;flex-direction:column;gap:5px}
+  .eat:hover{transform:translateY(-1px)}
+  .eat:active{transform:scale(.99)}
+  .eat .top{display:flex;align-items:center;gap:8px}
+  .eat .en{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14.5px;flex:1;min-width:0}
+  .eat .ai{font-size:11px;color:var(--dc);opacity:.7;flex:none}
+  .eat .tier{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;color:#fff;background:var(--dc);
+    border-radius:5px;padding:1px 6px;flex:none}
+  .eat .d{font-size:12px;color:var(--soft)}
+  .eat .pick{flex:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--dc);background:transparent;
+    border:1px solid var(--dc);border-radius:8px;padding:5px 11px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+  .eat .pick:hover{background:var(--dc);color:#fff}
+  .eat[aria-pressed="true"]{background:var(--dc);border-color:var(--dc)}
+  .eat[aria-pressed="true"] .en,.eat[aria-pressed="true"] .d,.eat[aria-pressed="true"] .ai{color:#fff}
+  .eat[aria-pressed="true"] .tier{background:rgba(255,255,255,.22)}
+  .eat[aria-pressed="true"] .pick{color:#fff;border-color:rgba(255,255,255,.55)}
+  .eat[aria-pressed="true"] .pick:hover{background:rgba(255,255,255,.2)}
+
+  .locked-row{margin-top:11px}
+  .locked-row .ll{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12px;color:var(--locktext);background:var(--lockbg);border:1px dashed #c7cdc9;border-radius:7px;
+    padding:3px 9px;cursor:pointer;filter:grayscale(1);display:flex;align-items:center;gap:5px}
+  .chip:hover{filter:grayscale(.4)}
+
+  /* ---- weather layer ---- */
+  .wxbar{display:flex;align-items:center;gap:9px;margin-top:10px;flex-wrap:wrap}
+  .wxbar .wl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--faint);text-transform:uppercase}
+  .wxseg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+  .wxseg button{border:0;background:transparent;font-size:14px;padding:5px 11px;cursor:pointer;border-right:1px solid var(--line);filter:grayscale(.55);opacity:.7;transition:opacity .15s}
+  .wxseg button:last-child{border-right:0}
+  .wxseg button.on{background:var(--ink);filter:none;opacity:1}
+  .advice{margin-top:12px;border-radius:11px;padding:11px 13px;font-size:13px;line-height:1.6}
+  .advice.ok{background:#E7F0E7;border:1px solid #BFD6BF;color:#2E5A34}
+  .advice.tip{background:#EDF2F5;border:1px solid #C9D8E0;color:#31505E}
+  .advice.bad{background:#F7ECE8;border:1px solid #E3C4B8;color:#7C3B26}
+  .advice .at{font-weight:600;display:block;margin-bottom:4px}
+  .split{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:7px}
+  .split .sl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;opacity:.75;flex:0 0 auto}
+  .split .sc{font-size:12px;background:#fff;border:1px solid rgba(0,0,0,.14);border-radius:7px;padding:2px 8px;cursor:pointer}
+  .split .sc:hover{border-color:rgba(0,0,0,.35)}
+  .swaps{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+  .swaps .swl{font-family:var(--mono);font-size:10px;opacity:.75}
+  button.swap{font-size:12.5px;font-weight:600;color:#fff;background:var(--dc);border:0;border-radius:8px;padding:5px 11px;cursor:pointer}
+  button.swap:active{transform:scale(.97)}
+  .ab{font-size:10px;opacity:.6;margin-left:2px}
+
+  /* ---- live data panel + forecast strip ---- */
+  .live{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 16px;margin:6px 0 2px;display:grid;gap:9px}
+  .lrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .lrow .ll{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);flex:0 0 64px}
+  .lstat{font-size:12.5px;color:var(--soft);flex:1;min-width:160px}
+  .lbtn{font-family:var(--mono);font-size:11px;border:1px solid var(--line);background:#fff;color:var(--soft);border-radius:8px;padding:6px 11px;cursor:pointer}
+  .lbtn:hover{border-color:var(--ink);color:var(--ink)}
+  .lbtn.pri{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .seg.small button{padding:6px 12px;font-size:12px}
+  .wxf{margin-top:8px;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--soft);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .wxf .fok{color:#2E5A34}
+  .fapply{font-family:var(--mono);font-size:10.5px;border:1px solid var(--ink);background:#fff;color:var(--ink);border-radius:7px;padding:3px 9px;cursor:pointer}
+  .fapply:hover{background:var(--ink);color:#fff}
+  .wxstrip{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 14px}
+  .wxchip{font-family:var(--mono);font-size:10.5px;letter-spacing:.02em;color:var(--soft);background:#fff;
+    border:1px dashed var(--line);border-radius:9px;padding:6px 10px;cursor:pointer;line-height:1.55;text-align:center}
+  .wxchip b{display:block;font-size:12px;color:var(--ink);font-weight:600}
+  .wxchip.on{border-style:solid;border-color:var(--ink)}
+  .wxchip:hover{border-color:var(--ink)}
+  .wxchip.tdy{background:var(--ink);border-color:var(--ink);color:#cfe0e4}
+  .wxchip.tdy b{color:#fff}
+  .tt{margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:9px 12px;display:grid;gap:6px}
+  .ttr{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12.5px;color:var(--soft)}
+  .tt .tl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;flex:0 0 auto}
+  .tin{font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:7px;padding:3px 7px;background:#fff}
+  .eta b{color:var(--ink)}
+  .gm{font-family:var(--mono);font-size:10.5px;border:1px solid var(--s-city);color:var(--s-city);border-radius:7px;padding:4px 9px;text-decoration:none}
+  .gm:hover{background:var(--s-city);color:#fff}
+  .lin{flex:1;min-width:130px;font-size:12.5px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:#fff}
+  .stayrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .srange{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:0 0 auto;min-width:118px}
+
+  /* ---- budget + ledger ---- */
+  .budget,.ledger{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 14px}
+  .budget{border-left:5px solid var(--s-city)}
+  .ledger{border-left:5px solid var(--r-market)}
+  .brow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:13px;flex-wrap:wrap}
+  .brow:first-of-type{border-top:0}
+  .brow .bl{color:var(--soft)}
+  .brow .bv{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+  .brow.g .bv{font-weight:700;font-size:14px}
+  .pstep{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12.5px}
+  .pstep button{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;line-height:1}
+  .pstep button:hover{border-color:var(--ink)}
+  .xrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--line);font-size:12.5px;flex-wrap:wrap}
+  .xrow .xd{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:0 0 auto}
+  .xrow .xa{font-family:var(--mono);color:var(--ink);margin-left:auto}
+  .xrow img{width:34px;height:34px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--line)}
+  .xdel{border:0;background:transparent;color:var(--faint);cursor:pointer;font-size:14px}
+  .lt{font-family:var(--mono);font-size:10.5px;color:var(--soft);margin:7px 0 0;line-height:1.7}
+
+  .empty{color:var(--faint);font-size:13.5px;font-style:italic;padding:6px 2px}
+
+  /* ---- destination pool ---- */
+  .pool{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:640px){.pool{grid-template-columns:1fr}}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;border-top:5px solid var(--dc)}
+  .pcard .pimg{height:96px;background:var(--dc);overflow:hidden}
+  .pcard .pimg img{width:100%;height:100%;object-fit:cover;display:block}
+  .pcard .pb{padding:12px 14px 14px}
+  .pcard .pn{font-family:var(--serif);font-size:18px;color:var(--dc);margin:0 0 2px}
+  .pcard .pe{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;color:var(--faint);text-transform:uppercase}
+  .pcard .pf{font-size:12px;color:var(--soft);margin:7px 0 0}
+  .pf .pact{display:inline-block;font-size:12px;color:var(--soft);cursor:pointer;margin:0 2px 4px 0;
+    border-bottom:1px dotted var(--dc);padding-bottom:1px}
+  .pf .pact:not(:last-child)::after{content:" ·";color:var(--faint);border:0;margin-left:4px}
+  .pf .pact:hover{color:var(--dc)}
+  .assign{margin-top:11px}
+  .assign .al{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .daybtns{display:flex;flex-wrap:wrap;gap:5px}
+  .daybtns button{font-family:var(--mono);font-size:12px;width:30px;height:30px;border-radius:8px;cursor:pointer;
+    border:1px solid var(--dc);background:#fff;color:var(--dc);transition:background .15s}
+  .daybtns button:hover{background:var(--dc);color:#fff}
+  .daybtns button.active{background:var(--dc);color:#fff}
+
+  /* ---- snacks strips ---- */
+  .snacks{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;border-left:5px solid var(--r-oldtown)}
+  .snacks.fika{border-left-color:var(--s-gamla)}
+  .snacks .sl{font-family:var(--serif);font-size:16px;font-weight:600;margin:0 0 3px}
+  .snacks .sd{font-size:12.5px;color:var(--soft);margin-bottom:10px}
+  .snacks .sgrid{display:flex;flex-wrap:wrap;gap:8px}
+  .snacks .s{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:7px 11px;font-size:13px;cursor:pointer;transition:border-color .15s,transform .12s}
+  .snacks .s:hover{border-color:var(--acc,var(--r-oldtown));transform:translateY(-1px)}
+  .snacks .s:active{transform:scale(.98)}
+  .snacks .s b{display:block;font-size:13.5px}
+  .snacks .s small{color:var(--soft)}
+  .snacks .s .ai{font-size:11px;color:var(--acc,var(--r-oldtown));opacity:.75}
+
+  /* ---- summary + actions ---- */
+  .summary{background:var(--ink);color:#eaf1f0;border-radius:16px;padding:20px 20px 22px;margin-top:14px}
+  .summary h2{font-family:var(--serif);color:#fff;font-size:21px;margin:0 0 4px}
+  .summary .sn{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:#9fb4b6;text-transform:uppercase;margin-bottom:14px}
+  .srow{padding:10px 0;border-top:1px solid rgba(255,255,255,.12);display:flex;gap:12px;align-items:flex-start}
+  .srow:first-of-type{border-top:0}
+  .srow .sd{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#9fb4b6;flex:0 0 56px;padding-top:3px}
+  .srow .sdot{width:9px;height:9px;border-radius:50%;background:var(--dc,#5a7184);margin-top:6px;flex:0 0 9px}
+  .srow .smain b{font-family:var(--serif);font-size:16px;color:#fff;font-weight:600}
+  .srow .smeals{font-size:13px;color:#c7d4d4;margin-top:2px}
+  .srow .none{font-size:13px;color:#8aa0a1;font-style:italic;margin-top:2px}
+  .srow.ferry .smain b{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:#9fc4cb;font-weight:400}
+  .actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+  .actions button{font-family:var(--sans);font-size:14px;font-weight:600;border-radius:10px;padding:10px 17px;cursor:pointer;border:1px solid transparent}
+  .btn-pri{background:#fff;color:var(--ink)}
+  .btn-sec{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+  .btn-ghost{background:transparent;color:#9fb4b6;border-color:transparent;text-decoration:underline;text-underline-offset:3px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+    padding:11px 20px;border-radius:30px;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,.22)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ---- info popup ---- */
+  .modal{position:fixed;inset:0;background:rgba(12,28,33,.55);display:flex;align-items:center;justify-content:center;
+    padding:22px;opacity:0;pointer-events:none;transition:opacity .22s;z-index:60}
+  .modal.show{opacity:1;pointer-events:auto}
+  .sheet{position:relative;background:#fff;border-radius:18px;max-width:440px;width:100%;overflow:hidden;
+    border-top:6px solid var(--dc,var(--ink));transform:translateY(14px);transition:transform .22s;box-shadow:0 18px 50px rgba(0,0,0,.32)}
+  .modal.show .sheet{transform:none}
+  .sheet .pad{padding:22px 22px 26px}
+  .sheet .mimg{display:none;background:var(--paper);position:relative}
+  .sheet .mimg img{display:block;width:100%;height:186px;object-fit:cover}
+  .sheet .mimg .mtag{position:absolute;right:8px;bottom:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;background:rgba(21,50,60,.72);color:#fff;border-radius:5px;padding:2px 7px}
+  .sheet .mover{font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--dc,var(--ink))}
+  .sheet .mtt{font-family:var(--serif);font-size:23px;font-weight:600;line-height:1.15;margin:5px 0 11px;color:var(--ink)}
+  .sheet .mbd{font-size:14.5px;color:var(--soft);line-height:1.72}
+  .sheet .mx{position:absolute;top:11px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:var(--paper);
+    color:var(--soft);font-size:14px;cursor:pointer;line-height:1}
+  .sheet .mx:hover{background:var(--line)}
+
+  footer{color:var(--faint);font-size:12px;text-align:center;padding:26px 0 8px;line-height:1.7}
+
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+  @media print{
+    body{background:#fff;padding:0}
+    .noprint{display:none!important}
+    .summary{background:#fff;color:#000;border:1px solid #999;border-radius:0;padding:0}
+    .summary h2,.srow .smain b{color:#000}
+    .summary .sn,.srow .sd,.srow .smeals{color:#333}
+    .srow{border-top:1px solid #ccc}
+    .srow .sdot{outline:1px solid #000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Baltic Radial Trip · 路線式規劃 v3</div>
+    <h1 class="mast">斯德哥爾摩<span class="x">×</span>塔林</h1>
+    <p class="mast-sub">兩座城市都用同一套邏輯：一天一條路線，吃跟著路線走——選了哪一區，只有那區的餐廳會亮起來。全程日期已對齊：7/4 晚班機去、7/10 晚渡輪回，7/11–12 斯京收尾。</p>
+    <div class="facts">
+      <div class="f"><div class="n">6/30–7/12</div><div class="l">出發→返抵</div></div>
+      <div class="f"><div class="n">12 晚</div><div class="l">地面天數</div></div>
+      <div class="f"><div class="n">5 + 6</div><div class="l">斯京·塔林（晚）</div></div>
+      <div class="f"><div class="n">✈ + ⛴</div><div class="l">去飛 · 回船</div></div>
+      <div class="f"><div class="n">0 🚗</div><div class="l">純大眾運輸</div></div>
+    </div>
+  </header>
+
+  <div class="live noprint">
+    <div class="lrow"><span class="ll">即時預報</span><span class="lstat" id="wxStatus">載入中…</span>
+      <button class="lbtn" onclick="fetchWeather()">更新</button>
+      <button class="lbtn pri" onclick="applyAllWx()">一鍵套用建議</button></div>
+    <div class="lrow"><span class="ll">幣別</span>
+      <div class="seg small" id="curSeg"><button data-c="local" class="on">當地幣</button><button data-c="twd">NT$</button></div>
+      <span class="lstat" id="fxStatus">載入中…</span>
+      <button class="lbtn" onclick="fetchFX()">更新匯率</button></div>
+    <div class="lrow" style="align-items:flex-start"><span class="ll">住宿段</span>
+      <div id="stayList" style="flex:1;display:grid;gap:6px;min-width:220px"></div>
+    </div>
+    <div class="lrow"><span class="ll">存檔</span><span class="lstat" id="saveNote">檢查中…</span>
+      <button class="lbtn" onclick="exportAll()">匯出備份</button>
+      <button class="lbtn" onclick="importAll()">匯入</button></div>
+  </div>
+
+  <!-- ===== 斯德哥爾摩 ===== -->
+  <div class="sec-head"><h2>斯德哥爾摩</h2><span class="tag">7 天 · 含 7/4 航班日與 7/11–12 收尾</span></div>
+  <p class="note">改搭 7/4（六）21:25 班機後，7/3 整天撿回來、7/4 也能玩到傍晚。回程 7/11 上午 10:30 就到斯京——整個下午加晚上都能玩；7/11–7/12 兩天在最下方。</p>
+  <div class="wxstrip noprint" id="seWx"></div>
+  <div class="days" id="seDays"></div>
+
+  <div class="sec-head"><h2>據點選單 · 斯京</h2><span class="tag">點數字＝排入該天</span></div>
+  <p class="note">四個市區路線＋兩個出城選項。點景點名稱看深度介紹。</p>
+  <div class="pool" id="sePool"></div>
+
+  <div class="sec-head"><h2>Fika · 隨手甜</h2><span class="tag">瑞典的下午茶文化 · 不佔正餐</span></div>
+  <div class="snacks fika" style="--acc:var(--s-gamla)">
+    <div class="sl">烘焙坊與超市小點</div>
+    <div class="sd">Fika＝瑞典人一天中神聖的咖啡甜點時光。這些到處都有、不綁路線，點任一項看介紹。</div>
+    <div class="sgrid" id="fikaGrid"></div>
+  </div>
+
+  <div class="leg"><span class="ico">✈</span> 航班 7/4（六）21:25 斯德哥爾摩 → 塔林 約 23:20 抵達（當地時間 +1hr）</div>
+
+  <!-- ===== 塔林 ===== -->
+  <div class="sec-head"><h2>主基地 · 塔林</h2><span class="tag">每天選一條路線</span></div>
+  <p class="note">7/5（日）起算，固定六天到 7/10 渡輪日。每天指定一個目的地後，「今天吃什麼」只會出現那一區能到的選擇；7/8 原定赫爾辛基已先幫你排上，依預報彈性搬動即可。</p>
+
+  <div class="counter noprint">
+    <span class="cl">7/5 – 7/10 · 固定 6 天</span>
+    <span class="cl" style="margin-left:auto">看預報把「看天吃飯」的路線排進最好的天</span>
+  </div>
+  <div class="wxstrip noprint" id="eeWx"></div>
+
+  <div class="days" id="eeDays"></div>
+
+  <div class="sec-head"><h2>據點選單 · 塔林</h2><span class="tag">點數字＝排入該天</span></div>
+  <p class="note">城市三區彼此分開（避免同一天跨區繞路）；出城與赫爾辛基是整天在外，那天市區餐廳會自動鎖定。</p>
+  <div class="pool" id="eePool"></div>
+
+  <div class="sec-head"><h2>隨手抓</h2><span class="tag">愛沙尼亞每天都有 · 不佔正餐</span></div>
+  <div class="snacks" style="--acc:var(--r-oldtown)">
+    <div class="sl">超市與伴手零嘴</div>
+    <div class="sd">這些不綁路線、不算一頓——想吃隨時買，不會打亂行程邏輯。點任一項看詳細介紹。</div>
+    <div class="sgrid" id="snackGrid"></div>
+  </div>
+
+  <div class="leg"><span class="ico">⛴</span> 渡輪 7/10（五）塔林 18:00（愛沙尼亞時間）→ 斯德哥爾摩 7/11 約 10:30 抵（瑞典時間 · 過夜）</div>
+
+  <!-- 返程日 = 斯京 Day 6 -->
+  <div class="days" id="seDay5"></div>
+
+  <!-- ===== 旅費 ===== -->
+  <div class="sec-head"><h2>旅費 · 預算與記帳</h2><span class="tag">預估自動加總 · 實際拍照＋手動</span></div>
+  <div class="budget" id="budgetBox"></div>
+  <div class="ledger">
+    <div style="font-family:var(--serif);font-size:16px;font-weight:600;margin:0 0 3px">記帳（分段統計）</div>
+    <div style="font-size:12.5px;color:var(--soft);margin-bottom:10px">拍下收據或手動輸入，依日期自動歸到「斯京去程／塔林／斯京返程」三段；幣別依日期自動判定（塔林段＝€、瑞典段＝SEK），可手動改。<span id="storeNote"></span></div>
+    <div class="lrow noprint" style="flex-wrap:wrap;gap:8px;margin-bottom:4px">
+      <input type="date" id="xDate" class="lin" style="flex:0 0 150px" min="2026-06-30" max="2026-07-12" onchange="syncCur()">
+      <select id="xCat" class="dest" style="padding:7px 9px"><option>餐飲</option><option>交通</option><option>門票</option><option>購物</option><option>住宿</option><option>其他</option></select>
+      <select id="xCur" class="dest" style="padding:7px 9px" onchange="updXPreview()"><option value="SEK">SEK</option><option value="EUR">EUR</option><option value="TWD">NT$</option></select>
+      <input type="number" id="xAmt" class="lin" placeholder="金額" style="flex:0 0 100px" inputmode="decimal" oninput="updXPreview()"><span class="lstat" id="xNt" style="flex:0 0 auto;min-width:80px"></span>
+      <input id="xNote" class="lin" placeholder="備註（店名／品項）">
+      <button class="lbtn" onclick="document.getElementById('rcpFile').click()">📷 拍收據</button>
+      <img id="rcpPrev" style="display:none;width:34px;height:34px;object-fit:cover;border-radius:6px;border:1px solid var(--line)" alt="">
+      <input type="file" id="rcpFile" accept="image/*" capture="environment" style="display:none" onchange="pickRcp(this)">
+      <button class="lbtn pri" onclick="addExp()">＋ 新增</button>
+    </div>
+    <div id="ledgerTotals"></div>
+    <div id="ledgerList"></div>
+    <div class="lrow noprint" style="margin-top:8px">
+      <button class="lbtn" onclick="exportAll()">匯出備份（行程＋記帳）</button>
+      <button class="lbtn" onclick="importAll()">匯入</button>
+    </div>
+  </div>
+
+  <!-- ===== 我的行程 ===== -->
+  <div class="summary" id="summary">
+    <h2>我的行程</h2>
+    <div class="sn">Stockholm + Tallinn · 即時更新</div>
+    <div id="sbody"></div>
+    <div class="actions noprint">
+      <button class="btn-pri" onclick="copyPlan()">複製行程</button>
+      <button class="btn-sec" onclick="window.print()">列印 · 存 PDF</button>
+      <button class="btn-ghost" onclick="resetPlan()">重設</button>
+    </div>
+  </div>
+
+  <footer>
+    渡輪、開放時間與票價以官網為準；斯京段日期已對齊機票與渡輪，渡輪確切時刻以 Tallink Silja 為準。<br>
+    即時預報：Open-Meteo · 即時匯率：open.er-api（需連網；離線時可手動標天氣、匯率用備用值）。<br>
+    行程與記帳會自動保存在此裝置；「今天／已完成」依裝置日期自動推進。部分開啟方式不支援保存，請善用「匯出備份」。<br>
+    交通分鐘數為住宿基準估計；「Google Maps 即時路線」才是含即時班次與延誤的實時資訊。<br>
+    餐廳與零食價格為 2026 夏「人均參考區間」（非店家即時報價），以現場菜單為準。<br>
+    照片來源 Wikimedia Commons（CC 授權）；若某張載不出來，會自動換成該區色塊。
+  </footer>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeInfo()">
+  <div class="sheet" id="sheet">
+    <button class="mx" onclick="closeInfo()" aria-label="關閉">✕</button>
+    <div class="mimg" id="mImg"></div>
+    <div class="pad">
+      <div class="mover" id="mOver"></div>
+      <div class="mtt" id="mTitle"></div>
+      <div class="mbd" id="mBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= PHOTOS ================= */
+var PHOTO = {
+  /* Tallinn */
+  oldtown:"https://commons.wikimedia.org/wiki/Special:FilePath/Tallinn_-_Town_Hall_Square_%28Raekoja_plats%29.jpg?width=640",
+  viru:"https://commons.wikimedia.org/wiki/Special:FilePath/Viru_Bog%2C_Parque_Nacional_Lahemaa%2C_Estonia%2C_2012-08-12%2C_DD_60.JPG?width=640",
+  keila:"https://commons.wikimedia.org/wiki/Special:FilePath/Keila_Juga.jpg?width=640",
+  helsinki:"https://commons.wikimedia.org/wiki/Special:FilePath/Helsinki_Senate_Square_in_July_2024.jpg?width=640",
+  market:"https://commons.wikimedia.org/wiki/Special:FilePath/Telliskivi_Creative_City.jpg?width=640",
+  coast:"https://commons.wikimedia.org/wiki/Special:FilePath/Kadriorg_Palace-Tallinn.jpg?width=640",
+  haapsalu:"https://commons.wikimedia.org/wiki/Special:FilePath/Kuursaal_-_Haapsalu_-_Estonia.JPG?width=640",
+  parnu:"https://commons.wikimedia.org/wiki/Special:FilePath/Beach_in_P%C3%A4rnu.JPG?width=640",
+  /* Stockholm */
+  gamla:"https://commons.wikimedia.org/wiki/Special:FilePath/Stortorget_i_Gamla_Stan_i_Stockholm.JPG?width=640",
+  djur:"https://commons.wikimedia.org/wiki/Special:FilePath/Swedish_warship_Vasa%2C_sank_1628%2C_Vasamuseet%2C_Stockholm_%2825%29_%2835433647584%29.jpg?width=640",
+  city:"https://commons.wikimedia.org/wiki/Special:FilePath/Stockholms_Stadshuset_City_Hall_Stockholm_2016_01.jpg?width=640",
+  soder:"https://commons.wikimedia.org/wiki/Special:FilePath/Blick_auf_Gamla_stan.jpg?width=640",
+  isl:"https://commons.wikimedia.org/wiki/Special:FilePath/Fj%C3%A4derholmarna_14.JPG?width=640",
+  drott:"https://commons.wikimedia.org/wiki/Special:FilePath/Drottningholm_Palace_%28by_Pudelek%29_1.jpg?width=640"
+};
+
+/* ================= STOCKHOLM DATA ================= */
+var SE_REGIONS = {
+  gamla:{name:"老城 Gamla Stan", en:"Old Town", color:"var(--s-gamla)", kind:"city", foot:"🟡 石板路、慢慢走", photo:PHOTO.gamla, acts:[
+    {n:"Stortorget 大廣場", d:"老城心臟，彩色山形牆老屋是斯京最經典的一張畫面；1520 年著名的「斯德哥爾摩血案」就發生在這座廣場，冬天則變身百年耶誕市集。諾貝爾獎博物館就在廣場邊。"},
+    {n:"王宮衛兵交接", d:"斯德哥爾摩王宮是歐洲最大宮殿之一（六百多個房間），夏季每天中午在外庭舉行衛兵交接，常有軍樂隊、偶爾騎兵進場，站在中庭免費看。"},
+    {n:"Storkyrkan 大教堂", d:"斯京最古老的教堂（13 世紀），鎮堂之寶是 1489 年的木雕《聖喬治屠龍》，歷代國王加冕與皇室婚禮都在這裡舉行。"},
+    {n:"Mårten Trotzigs gränd", d:"全城最窄的巷子，最窄處只有 90 公分，階梯配壁燈非常好拍，一分鐘朝聖型景點，順路必收。"},
+    {n:"諾貝爾獎博物館", d:"小而精，講歷屆得主的故事與突破；彩蛋是咖啡廳的椅子底下有得主親筆簽名——記得翻椅子找找。"}]},
+  djur:{name:"Djurgården 博物館島", en:"Museum Island", color:"var(--s-djur)", kind:"city", foot:"🟢 平路輕鬆 · 電車 7 號", photo:PHOTO.djur, acts:[
+    {n:"Vasa 沉船博物館", d:"1628 年首航不到 1500 公尺就沉沒的皇家戰艦，1961 年整船打撈、98% 原件，是全世界保存最完整的 17 世紀戰艦。走進館內第一眼的震撼全家通吃，斯京第一必看。"},
+    {n:"Skansen 露天博物館", d:"1891 年創立、全球最古老的露天博物館，把全瑞典各地的老屋老街整區搬進來，還有北歐動物區（麋鹿、棕熊、猞猁），輕鬆耗掉半天。"},
+    {n:"ABBA 博物館", d:"互動性超高：可以進錄音室錄唱、跟全息投影的 ABBA 同台跳舞並錄下影片，不是歌迷也會玩得很開心。"},
+    {n:"Gröna Lund 樂園", d:"1883 年開業的水岸遊樂園，雲霄飛車直接懸在海邊上，夏季傍晚常有露天演唱會，適合傍晚放電。"},
+    {n:"Rosendals Trädgård", d:"島上深處的生機花園與溫室咖啡，果園、花田與自家烘焙，是 Djurgården 最愜意的一角，散步終點站首選。"}]},
+  city:{name:"市中心 · 市政廳", en:"City / Stadshuset", color:"var(--s-city)", kind:"city", foot:"🟢 平路輕鬆", photo:PHOTO.city, acts:[
+    {n:"市政廳 Stadshuset", d:"每年諾貝爾晚宴的藍廳、與貼了約 1800 萬片金箔馬賽克的金廳都在這裡（入內需跟導覽）；106 公尺塔樓夏季可登頂，是看全城的最佳制高點之一。"},
+    {n:"Kungsträdgården", d:"市中心的綠帶廣場，夏天常有免費演出與露天活動，春天則是著名的櫻花隧道；周邊就是購物區，走累了坐下來看人來人往。"},
+    {n:"Hötorgshallen 市場", d:"音樂廳（Konserthuset）地下的老市場，各國熟食與海鮮攤聚集；樓上那棟藍色音樂廳正是每年諾貝爾頒獎典禮的場地。"},
+    {n:"Sergels torg", d:"玻璃方尖碑與黑白三角地磚的現代市中心，Kulturhuset 文化中心與各大百貨都在周邊，是感受「當代斯京」的一站。"}]},
+  soder:{name:"Södermalm 南島", en:"Södermalm", color:"var(--s-soder)", kind:"city", foot:"🟢 平路＋一段坡", photo:PHOTO.soder, acts:[
+    {n:"Fotografiska 攝影美術館", d:"世界級的攝影展館，展覽水準高、換展快，開到深夜，頂樓咖啡座正對海灣——帶著 Q3 來朝聖剛剛好，小比看展也會很有感。"},
+    {n:"Monteliusvägen 觀景步道", d:"南島北崖約 400–500 公尺的小徑，正對騎士灣、市政廳與 Riddarholmen 尖塔剪影，是斯京黃金時刻與夜景的教科書機位；從 Mariatorget 或 Slussen 站步行可達。"},
+    {n:"SoFo 街區", d:"Folkungagatan 以南的設計、古著、黑膠與咖啡小店聚落，Söder 的文青核心，適合無目的地慢慢晃。"},
+    {n:"Skinnarviksberget", d:"市區最高的天然岩丘，當地人帶毯子和零食上來看夕陽的地方，視野開闊、完全免費，很有在地生活感。"}]},
+  isl:{name:"Fjäderholmarna 群島", en:"Archipelago light · day trip", color:"var(--s-isl)", kind:"trip", foot:"🟢 船程 25 分", photo:PHOTO.isl, acts:[
+    {n:"25 分鐘出海", d:"從市中心 Nybrokajen（或 Slussen）搭船約 25–30 分鐘就到，是斯德哥爾摩群島最近的門戶，夏季班次密集——用最少的時間嘗到瑞典群島（skärgård）的精華。"},
+    {n:"工藝工作室", d:"島上聚集玻璃吹製、陶藝、木工等工作室，可以看職人現場操作，小店的手作紀念品也有質感。"},
+    {n:"岩岸戲水與燻魚", d:"平滑的花崗岩岸可以坐著曬太陽或下水，港邊的煙燻坊直接吃現燻鮭魚配啤酒，是最有夏天感的半日行程。"}]},
+  drott:{name:"Drottningholm 皇后島宮", en:"UNESCO palace · day trip", color:"var(--s-drott)", kind:"trip", foot:"🟢 船 1hr 或地鐵+公車", photo:PHOTO.drott, acts:[
+    {n:"皇后島宮", d:"1991 年列入 UNESCO 世界遺產，被稱為「瑞典的凡爾賽」，現任國王與王后實際居住在南翼——是還在使用中的王宮。"},
+    {n:"巴洛克花園與中國亭", d:"幾何式的巴洛克花園免費開放，深處的 18 世紀中國亭（Kina slott）是當年歐洲宮廷中國風尚的代表作，粉彩外觀很好拍。"},
+    {n:"宮廷劇院", d:"1766 年的宮廷劇院連木造舞台機關都是原件，夏季有導覽與演出；去程建議從市政廳碼頭搭船約 1 小時，梅拉倫湖風景本身就是行程的一部分。"}]}
+};
+var SE_ORDER=["gamla","djur","city","soder","isl","drott"];
+
+var SE_FOODS = [
+  {id:"grillska", name:"Grillska Huset", tier:"便宜尋寶", note:"大廣場旁烘焙咖啡，肉桂捲＋露台", region:"gamla",
+    info:"老城大廣場旁、由 Stockholms Stadsmission（城市慈善組織）經營的烘焙咖啡館，肉桂捲與公主蛋糕出名，還有能俯瞰 Stortorget 的小露台；消費盈餘投入社福，吃甜點順便做好事。"},
+  {id:"kastanjen", name:"Under Kastanjen", tier:"中價", note:"栗子樹小廣場旁的家常瑞典菜", region:"gamla",
+    info:"藏在老城巷底、以中庭那棵栗子樹得名的小廣場餐館，家常瑞典菜（husmanskost）與 fika 甜點都有，環境放鬆、對家庭友善，逛老城逛累了歇腳剛好。"},
+  {id:"krypin", name:"Kryp In", tier:"中價", note:"老城巷弄小館，現代瑞典菜，要訂位", region:"gamla",
+    info:"老城巷子裡的迷你瑞典餐館，用現代手法做經典菜，晚間套餐的 CP 值在老城數一數二；座位很少、名氣很大，想吃務必提前訂位。"},
+  {id:"rosendals", name:"Rosendals Trädgård 咖啡", tier:"中價", note:"溫室花園咖啡，現烤麵包", region:"djur",
+    info:"Djurgården 花園深處的溫室咖啡，用自家生機農園的食材，現烤酸種麵包與肉桂捲是招牌，坐在果園裡吃最有夏天感；只營業白天，天氣好時一位難求。"},
+  {id:"ulla", name:"Ulla Winbladh", tier:"中價", note:"老字號瑞典經典菜，島上正餐", region:"djur",
+    info:"1897 年博覽會時期留下的老字號餐館，經典瑞典肉丸配越橘醬、醃鯡魚拼盤都做得很正，環境優雅有庭園座位，適合在 Djurgården 安排一頓像樣的正餐。"},
+  {id:"blaporten", name:"Blå Porten 藍門", tier:"中價", note:"Djurgården 百年庭園咖啡，歇腳首選", region:"djur",
+    info:"美術館旁的百年庭園咖啡，自助檯上蛋糕、派與家常熱食一字排開，坐在綠意中庭吃最舒服——逛完 Vasa 或 Skansen 想歇腳，島上第一順位。"},
+  {id:"kajsas", name:"Kajsas Fisk", tier:"便宜尋寶", note:"Hötorgshallen 傳奇魚湯", region:"city",
+    info:"Hötorgshallen 市場地下的傳奇魚湯店，一大碗濃郁的番紅花風味魚湯、料多到滿出來，配蒜味美乃滋（rouille）與麵包，可以續湯；排隊快、翻桌快，市中心平價吃飽的首選。"},
+  {id:"saluhall", name:"Östermalms Saluhall", tier:"奢侈", note:"1888 年老市場，高級覓食", region:"city",
+    info:"1888 年的紅磚室內市場，整修後重開，是斯京最漂亮的食材殿堂；Lisa Elmqvist 的海鮮櫃檯是招牌，適合「邊逛邊吃」的高級覓食，也很適合買燻鮭魚與熟食帶走。"},
+  {id:"k25", name:"K25 美食街", tier:"便宜尋寶", note:"市中心亞洲系美食街：拉麵、河粉、韓式", region:"city",
+    info:"Kungsgatan 25 的室內美食街，集合拉麵、越南河粉、韓式、墨西哥等十來攤，快速、平價、選擇多——在斯京想吃亞洲味、或全家口味不同時，一站解決。"},
+  {id:"pelikan", name:"Pelikan", tier:"中價", note:"百年啤酒館，經典肉丸", region:"soder",
+    info:"Södermalm 的百年啤酒館，挑高大廳、白圍裙侍者，肉丸、炸豬排等經典菜份量豪邁，晚上氣氛熱鬧；想吃「最正統的那一頓瑞典菜」來這裡沒錯。"},
+  {id:"mftp", name:"Meatballs for the People", tier:"中價", note:"SoFo 肉丸專門店，口味多", region:"soder",
+    info:"SoFo 街區的肉丸專門店，從經典牛豬到麋鹿、馴鹿、素食一字排開任選，輕鬆隨性、小孩接受度高，是把「瑞典肉丸」當主角認真做的店。"},
+  {id:"hermans", name:"Hermans", tier:"中價", note:"素食自助餐＋無敵露台海景", region:"soder",
+    info:"Söder 崖上的素食自助餐，重點是露台正對海灣與老城天際線，傍晚夕陽時段風景無敵；吃到飽形式菜色豐富，不吃素的人也會被那個景收服。"},
+  {id:"rokeriet", name:"島上煙燻坊 Rökeriet", tier:"中價", note:"現燻鮭魚配碼頭海景", region:"isl",
+    info:"Fjäderholmarna 島上的煙燻坊餐廳，現燻鮭魚、鮮蝦盤配啤酒，坐在碼頭邊吃著看船進出，是群島半日遊最完美的句點。"},
+  {id:"drottcafe", name:"宮旁咖啡 · 花園野餐", tier:"便宜尋寶", note:"宮殿咖啡館，或自帶野餐", region:"drott",
+    info:"宮殿旁有咖啡館可簡單解決；更推薦出發前在市區打包野餐，坐在巴洛克花園的樹蔭下吃——皇家花園野餐這件事本身就是行程亮點。"},
+  {id:"sepicnic", name:"市區打包帶著走", tier:"便宜尋寶", note:"Saluhall 或超市打包上船", kind:"trip",
+    info:"出島與出宮日的萬用解：在 Östermalms Saluhall 或超市打包開放三明治、肉桂捲與莓果，在船上或花園野餐，省時省錢又有畫面。"}
+];
+var SE_LOCKABLE=["grillska","kastanjen","krypin","rosendals","ulla","blaporten","kajsas","saluhall","k25","pelikan","mftp","hermans"];
+
+var FIKA = [
+  {name:"kanelbulle 肉桂捲", note:"Fika 的靈魂，烘焙坊現烤最讚",
+    info:"瑞典 fika 文化的靈魂：小荳蔻香的麵團捲入肉桂糖、撒上珍珠糖。全國愛到有國定「肉桂捲日」（10 月 4 日）。烘焙坊剛出爐的最好吃，連鎖咖啡的也不差。"},
+  {name:"kardemummabulle 荳蔻捲", note:"當地人的心頭好，香氣更奔放",
+    info:"肉桂捲的進階款，當地人心中往往更勝一籌——小荳蔻的香氣更奔放、甜度更收斂，配黑咖啡絕配。看到烘焙坊兩種都有，建議各買一顆比較。"},
+  {name:"prinsesstårta 公主蛋糕", note:"綠色杏仁膏圓頂經典",
+    info:"瑞典慶祝場合的定番蛋糕：綠色杏仁膏包住圓頂，裡面是海綿蛋糕、卡士達、鮮奶油與覆盆子醬，頂上一朵粉紅糖玫瑰。甜點櫃看到那個綠色圓頂就是它。"},
+  {name:"räkmacka 鮮蝦開放三明治", note:"堆成小山的北極甜蝦",
+    info:"瑞典的國民奢華輕食：麵包上堆成小山的北極甜蝦，配水煮蛋、美乃滋與蒔蘿。市場、咖啡館與渡輪上都有，午餐想輕食又想有儀式感就點它。"},
+  {name:"lösgodis 秤重糖果牆", note:"超市自己夾，小孩天堂",
+    info:"瑞典超市標配：一整面「自己夾」的糖果牆，按重量計價。瑞典人有週六吃糖（lördagsgodis）的傳統，小孩會瘋掉。敢挑戰的話夾幾顆鹹甘草糖 salmiak——大人小孩反應兩極，超好玩。"}
+];
+
+/* ================= TALLINN DATA ================= */
+var EE_REGIONS = {
+  oldtown:{name:"老城區", en:"Old Town", color:"var(--r-oldtown)", kind:"city", foot:"🟡 石板路、慢慢走", photo:PHOTO.oldtown, acts:[
+    {n:"Raekoja plats 市政廳廣場", d:"中世紀市政廳廣場，北歐現存最古老的市政廳（1404 年完工）就在這。夏天有露天攤位與小市集，周邊巷弄是老城最上相的核心。"},
+    {n:"Toompea 上城觀景台", d:"上城高地有 Kohtuotsa 和 Patkuli 兩個免費觀景台，可俯瞰紅瓦屋頂與港口，是經典明信片視角。上去是石板坡道，慢慢走。"},
+    {n:"Aleksander Nevski 教堂", d:"1900 年的俄式東正教堂，黑色洋蔥圓頂非常醒目，就矗立在 Toompea 上。可免費入內，內部禁止拍照。"},
+    {n:"中世紀城牆", d:"保存相當完整的紅頂塔樓與城牆，部分段落可登上走一小段、近看老城屋瓦，愛拍照的孩子會喜歡。"},
+    {n:"Kiek in de Kök 地堡隧道", d:"中世紀砲塔 Kiek in de Kök 串連 17 世紀稜堡的地下通道，一路鑽到 Toompea 山腳——涼爽、神秘、完全不淋雨，對孩子來說就是一場密道探險（隧道導覽場次建議先查）。"},
+    {n:"Niguliste 博物館", d:"聖尼古拉教堂改建的美術館，鎮館之寶是 15 世紀名作《死亡之舞》（Danse Macabre）；新設的玻璃電梯直上塔樓觀景台，雨天也能舒服看老城屋頂。"}]},
+  market:{name:"車站市集 · Telliskivi", en:"Market / Telliskivi", color:"var(--r-market)", kind:"city", foot:"🟢 平路輕鬆", photo:PHOTO.market, acts:[
+    {n:"Balti Jaama Turg 市集", d:"火車站旁的大型市集，生鮮、煙燻魚、街頭小吃、二手雜貨與野餐補給一次到位，是當地人真正採買的地方，也是出城前打包野餐的最佳補給站。"},
+    {n:"Telliskivi 文創區", d:"舊鐵路工廠改造的文創聚落，集合設計小店、咖啡、餐廳與藝廊，知名的 Fotografiska 攝影美術館也在這裡，氣氛輕鬆。"},
+    {n:"街頭藝術散步", d:"Telliskivi 一帶巷弄滿是大型壁畫與裝置藝術，而且常更新，邊走邊拍很出片，適合慢慢逛。"},
+    {n:"Fotografiska Tallinn", d:"斯德哥爾摩 Fotografiska 的塔林分館，就在 Telliskivi 文創區裡——展覽水準同樣高、換展快，附設餐廳評價也好；雨天看展配咖啡，帶相機的人必踩。"},
+    {n:"PROTO 發明工廠", d:"Noblessner 海港區舊潛艇鑄造廠改造的互動發明樂園：VR 熱氣球、早期飛行器、滿場可動手玩的裝置，青少年會玩瘋；從 Telliskivi 穿過 Kalamaja 木屋街區步行約 20 分，對面的 Kai 藝術中心可順看。"}]},
+  coast:{name:"海岸 Kadriorg · Pirita", en:"Coast", color:"var(--r-coast)", kind:"city", foot:"🟢 平路輕鬆", photo:PHOTO.coast, acts:[
+    {n:"Kadriorg 公園與宮殿", d:"彼得大帝為皇后下令興建的巴洛克粉紅宮殿與法式花園，現為藝術博物館。園區大、平路好走，適合悠閒半天。"},
+    {n:"KUMU 美術館", d:"愛沙尼亞國立美術館，現代建築本身就是亮點，館藏愛沙尼亞近現代藝術。室內空間大，是雨天的首選備案。"},
+    {n:"Pirita 海灘", d:"塔林最大的沙灘，夏天能玩水、散步，遠處可眺望老城天際線，海風舒服。"},
+    {n:"Lennusadam 水上飛機港", d:"海事博物館，巨大飛機庫裡有可登上的潛艇、水上飛機與軍艦，互動性高、小孩超愛，雨天也照玩。"}]},
+  viru:{name:"Viru 沼澤", en:"Viru Bog · day trip", color:"var(--r-trip)", kind:"trip", foot:"🟢 棧道平緩", photo:PHOTO.viru, acts:[
+    {n:"沼澤棧道", d:"Viru raba 的木棧道穿越沼澤與一池池水塘，平緩好走，前段連輪椅嬰兒車都可達，是 Lahemaa 最易親近的典型沼澤地景。"},
+    {n:"11m 觀景塔", d:"棧道中段的木造觀景塔，塔頂可俯瞰整片沼澤全景。塔頂有人數上限，雷雨時禁止上塔。"},
+    {n:"Lahemaa 國家公園", d:"愛沙尼亞最大的國家公園，森林、沼澤、海岸與古莊園都在這一片，Viru 沼澤只是其中一個入口。"}]},
+  keila:{name:"Keila-Joa 瀑布", en:"Keila-Joa · day trip", color:"var(--r-trip)", kind:"trip", foot:"🟡 林間步道", photo:PHOTO.keila, acts:[
+    {n:"瀑布", d:"Keila juga 是愛沙尼亞第三大瀑布，寬約 60–70 公尺、高約 6 公尺，水量充沛、氣勢好，很好拍。"},
+    {n:"莊園", d:"瀑布旁的 Keila-Joa 新哥德式莊園與公園，白色城堡式建築，可在園區散步配瀑布。"},
+    {n:"吊橋步道", d:"跨越河谷的吊橋與環狀步道串起瀑布與莊園，林間平緩好走，一圈不長。"}]},
+  haapsalu:{name:"Haapsalu", en:"Haapsalu · day trip", color:"var(--r-trip)", kind:"trip", foot:"🟢 平路輕鬆", photo:PHOTO.haapsalu, acts:[
+    {n:"主教城堡", d:"13 世紀的主教城堡與大教堂，是波羅的海最大的單一中殿教堂；傳說每逢八月滿月，禮拜堂牆上會浮現『白衣女子』身影。"},
+    {n:"木造海濱長廊", d:"招牌的木造 Kuursaal（度假音樂廳）與海濱長廊，是這座百年溫泉度假小鎮的代表畫面，夏天很美。"},
+    {n:"溫泉小鎮", d:"Haapsalu 自 1838 年起就是海水療養勝地，以礦泥泥療聞名，整座小鎮步調悠閒、適合放空。"}]},
+  parnu:{name:"Pärnu 海濱", en:"Pärnu · day trip", color:"var(--r-trip)", kind:"trip", foot:"🟢 平路輕鬆", photo:PHOTO.parnu, acts:[
+    {n:"白沙海灘", d:"愛沙尼亞的『夏季首都』，一大片溫暖白沙配海濱步道，水質清爽，氣氛像北歐版的度假海灘。"},
+    {n:"度假步道", d:"沿海濱的步道串起沙灘酒吧、冰淇淋攤與 1937 年的功能主義 Rannahotell，傍晚常有現場音樂。"},
+    {n:"老城公園", d:"Pärnu 老城的綠地公園與步行街，範圍 walkable、悠閒，適合海灘之外的散步。"}]},
+  helsinki:{name:"赫爾辛基", en:"Helsinki · ferry", color:"var(--r-helsinki)", kind:"helsinki", foot:"🟢 跨灣渡輪 2hr", photo:PHOTO.helsinki, acts:[
+    {n:"Senate 廣場與大教堂", d:"赫爾辛基的新古典心臟，純白大教堂與大階梯是城市地標，廣場時常有活動與市集。"},
+    {n:"Kauppatori 市集", d:"海港邊的露天市集，賣在地小吃與紀念品，旁邊的 Old Market Hall 室內市場很適合覓食。"},
+    {n:"Suomenlinna 海堡（選）", d:"聯合國世界遺產的海上要塞，從市集碼頭搭渡輪約 15 分鐘可達，可安排半天，行程有餘裕再去。"}]}
+};
+var EE_ORDER = ["oldtown","market","coast","viru","keila","haapsalu","parnu","helsinki"];
+
+var EE_FOODS = [
+  {id:"maiasmokk", name:"Maiasmokk 咖啡館", tier:"便宜尋寶", note:"塔林最老咖啡館，杏仁膏與蛋糕", region:"oldtown",
+    info:"老城裡 1864 年開業、塔林最古老的咖啡館，內部保留百年木作裝潢。以杏仁膏（marzipan）雕花、傳統蛋糕與熱巧克力聞名——坐下來喝杯咖啡配甜點，順手買盒杏仁膏當伴手禮。"},
+  {id:"rataskaevu", name:"Rataskaevu 16", tier:"中價", note:"招牌烤羊腿、蘑菇湯，要訂位", region:"oldtown",
+    info:"老城最受歡迎的餐廳之一，主打現代愛沙尼亞菜。招牌是慢烤羊腿與野菇湯，份量足、氣氛溫馨；非常熱門，務必提前訂位。據說點對甜點還會送上「店家的小驚喜」。"},
+  {id:"oldehansa", name:"Olde Hansa", tier:"中價", note:"中世紀主題：麋鹿肉、肉桂啤酒，小孩愛", region:"oldtown",
+    info:"老城裡的中世紀主題餐廳，服務生著古裝、燭光用餐，菜單復刻 15 世紀風味——燉麋鹿肉、野味香腸、加香料的肉桂啤酒。偏觀光取向但氣氛獨特，小孩會像穿越一樣，適合安排一頓體驗餐。"},
+  {id:"draakon", name:"III Draakon 第三龍", tier:"便宜尋寶", note:"市政廳裡的中世紀小酒館，麋鹿湯銅板價", region:"oldtown",
+    info:"就開在市政廳建築裡的中世紀小酒館：燭光昏暗、店員全程入戲，麋鹿湯、烤腸與果餡派全是銅板價，用陶碗直接端著喝。氣氛滿分又超便宜，是帶孩子體驗中世紀的最低門檻入口。"},
+  {id:"kompressor", name:"Kompressor 巨無霸煎餅", tier:"便宜尋寶", note:"老城傳奇平價煎餅，鹹甜都有", region:"oldtown",
+    info:"老城裡的學生系傳奇：盤子一樣大的巨無霸煎餅（pannkoogid），鹹的火腿起司、甜的莓果口味都有，一份就吃飽，價格非常親民；用餐尖峰常客滿，建議錯峰。"},
+  {id:"baltijaama", name:"Balti Jaama Turg", tier:"便宜尋寶", note:"市集美食街：煙燻魚、街食、kama、野餐補給", region:"market",
+    info:"火車站旁的大型市集，集合生鮮、煙燻魚、街頭小吃與各國攤位。最聰明的用法是當野餐補給站——買煙燻魚、黑麥麵包、莓果、kama 帶走；想坐下吃也有熟食區。價格實惠，是出城日早上打包午餐的最佳起點。"},
+  {id:"fhoone", name:"F-hoone", tier:"中價", note:"Telliskivi 元老食堂，人氣高 CP 好", region:"market",
+    info:"Telliskivi 文創區的元老級食堂，工業風空間，從義大利麵到在地家常菜都有，份量實在、價格友善，是文創區那天最順路的一頓正餐；用餐時段會排隊。"},
+  {id:"taldrik", name:"Lendav Taldrik 飛碟", tier:"中價", note:"亞洲風味：咖哩、炒麵、湯麵，想念亞洲胃來這", region:"market",
+    info:"Telliskivi 裡的亞洲風味餐館（與 F-hoone 同集團），咖哩、炒麵、亞洲湯麵一應俱全——旅程過半開始想念亞洲味的時候，這裡就是塔林的解藥，小孩接受度也高。"},
+  {id:"noa", name:"NOA", tier:"奢侈", note:"海邊高級餐廳、看灣景，安排一頓正式的", region:"coast",
+    info:"塔林近郊海邊的高級餐廳，整面落地窗正對海灣與遠處老城天際線。走精緻北歐路線、擺盤講究，是這趟想安排「一頓正式的」首選。分本店（高級）與旁邊較輕鬆的 Chef's Hall；要訂位，傍晚去看夕陽最美。"},
+  {id:"monrepos", name:"Mon Repos", tier:"奢侈", note:"Kadriorg 一帶的優雅老宅餐廳", region:"coast",
+    info:"Kadriorg 一帶的優雅餐廳，1930 年代風情的老宅空間，菜色精緻、服務到位，逛完宮殿與 KUMU 後好好吃一頓的選擇；想有儀式感、又不到 NOA 價位時剛剛好。"},
+  {id:"nop", name:"NOP 街角小館", tier:"便宜尋寶", note:"Kadriorg 木屋區的有機咖啡館，早午餐好", region:"coast",
+    info:"Kadriorg 木屋街區裡的社區型有機小館，早午餐、湯品與自家烘焙都做得用心，氣氛像走進在地人的日常；海岸線那天當輕食據點剛剛好。"},
+  {id:"picnic", name:"市集野餐帶著走", tier:"便宜尋寶", note:"出發前在 Balti Jaama Turg 採買，路上吃", kind:"trip",
+    info:"出城日沒有市區餐廳，最省事的吃法是出發前在 Balti Jaama Turg 把午餐打包好——煙燻魚、麵包、起司、莓果、kama，到沼澤或海邊野餐。省時又省錢，在大自然裡吃特別愜意。"},
+  {id:"localtown", name:"當地小鎮餐廳", tier:"中價", note:"到 Haapsalu / Pärnu / Lahemaa 就近吃", kind:"trip",
+    info:"到了 Haapsalu、Pärnu 這些小鎮，就近找一家當地餐廳。海濱小鎮多有海鮮與家常菜，步調慢、價格比塔林更親民；Pärnu 海濱步道上還有不少咖啡與小酒館可以歇腳。"},
+  {id:"kauppatori", name:"Kauppatori 市集", tier:"便宜尋寶", note:"赫爾辛基露天市集＋Old Market Hall", kind:"helsinki",
+    info:"赫爾辛基港邊的露天市集廣場，攤位賣鮭魚湯、炸小魚（muikku）、莓果與紀念品；旁邊的 Old Market Hall（1889 年的室內市場）可吃馴鹿肉、海鮮與咖啡。在赫爾辛基那天當午餐最方便。"},
+  {id:"helrest", name:"赫爾辛基餐廳", tier:"中價", note:"市區任一頓，當天就在赫爾辛基解決", kind:"helsinki",
+    info:"跨灣那天就在赫爾辛基市區解決一餐。市中心餐廳從平價到米其林都有，芬蘭招牌有肉桂捲、黑麥麵包、馴鹿與鮭魚。記得回程渡輪時間，吃完留點 buffer 進港。"}
+];
+var EE_LOCKABLE=["maiasmokk","rataskaevu","oldehansa","draakon","baltijaama","fhoone","taldrik","noa","monrepos"];
+
+var SNACKS = [
+  {name:"kohuke", note:"巧克力凝乳棒，超市必買，小孩愛",
+    info:"巧克力包裹的甜凝乳棒，愛沙尼亞國民零食，超市冷藏櫃一整排。外層巧克力、內餡是微甜的 kohupiim（凝乳／夸克），有香草、焦糖等多種口味，一條銅板價。冰冰的最好吃，小孩會一條接一條。"},
+  {name:"黑麥麵包 leib", note:"國民主食，又酸又紮實",
+    info:"愛沙尼亞餐桌的靈魂——深色酸黑麥麵包，紮實、微酸、帶嚼勁。當地人配奶油、煙燻魚或湯品吃；超市與市集都有現烤。當野餐主食很頂，也耐放。"},
+  {name:"煙燻黍鯡 kilu", note:"罐裝小鯡魚，配黑麵包",
+    info:"波羅的海特有的小鯡魚，鹽漬或煙燻後常做成罐頭，或鋪在黑麥麵包上、加顆水煮蛋做成傳統開放三明治「kiluvõileib」。鹹香涮嘴，是非常道地的在地味。"},
+  {name:"Vana Tallinn", note:"香甜酒，帶回當伴手禮",
+    info:"愛沙尼亞最有名的香甜酒（利口酒），深色、蘭姆酒基底，帶肉桂、柑橘與香草的暖香。可純飲、加進咖啡或調酒；機場和超市都買得到，是經典伴手禮（只有大人喝）。"}
+];
+
+/* ================= WEATHER LAYER ================= */
+/* wx: sun=看天吃飯 any=晴雨皆宜 rain=雨天首選 · a[]: 對應 acts 順序 in/out/mix */
+var WXMETA = {
+  se:{
+    gamla:{wx:"any", a:["out","out","in","out","in"],
+      rain:"雨天版：王宮房間＋大教堂＋諾貝爾博物館室內串連，雨小再鑽巷弄；石板路滑，慢慢走。"},
+    djur:{wx:"rain", a:["in","mix","in","out","mix"],
+      rain:"雨天首選：Vasa → ABBA 全室內震撼，電車 7 號門到門；Rosendals 溫室午茶也不怕雨，Skansen 與 Gröna Lund 留晴天。"},
+    city:{wx:"rain", a:["in","out","in","mix"],
+      rain:"雨天 OK：市政廳導覽＋Hötorgshallen 市場＋Kulturhuset 全程有屋頂，百貨躲雨也方便。"},
+    soder:{wx:"any", a:["in","out","mix","out"],
+      rain:"雨天版：Fotografiska 看展＋頂樓咖啡看雨中海灣，SoFo 鑽小店；Monteliusvägen 留給放晴的空檔。"},
+    isl:{wx:"sun", a:["out","in","out"],
+      rain:"怕雨路線：島上以戶外為主，雨天建議改排博物館島或市中心，把群島留給晴天。"},
+    drott:{wx:"any", a:["in","out","in"],
+      rain:"變通版：宮內導覽＋宮廷劇院可躲雨，但花園與船程才是精華——午後雨建議上午先衝，整天雨就改天。"}
+  },
+  ee:{
+    oldtown:{wx:"any", a:["out","out","in","mix","in","in"],
+      rain:"雨天版：Nevski 教堂 → Kiek in de Kök 地堡隧道 → Niguliste《死亡之舞》室內串連，配咖啡館久坐；石板路雨天滑，慢慢走。"},
+    market:{wx:"rain", a:["in","mix","out","in","in"],
+      rain:"雨天首選：Balti Jaama Turg 室內市集 → Fotografiska Tallinn 看展 → PROTO 發明工廠放電，幾乎全程有屋頂。"},
+    coast:{wx:"rain", a:["mix","in","out","in"],
+      rain:"雨天 OK：KUMU＋Lennusadam 兩大室內館就能撐整天，Kadriorg 宮殿也在室內；海灘留給晴天。"},
+    viru:{wx:"sun", a:["out","out","out"],
+      rain:"怕雨路線：棧道遇雨濕滑、雷雨時禁止上觀景塔——雨天建議整條改排市區室內線。"},
+    keila:{wx:"sun", a:["out","mix","out"],
+      rain:"怕雨路線：林間步道雨天濕滑；雨後水量更大更壯觀，但建議等放晴再去。"},
+    haapsalu:{wx:"sun", a:["mix","out","mix"],
+      rain:"變通版：城堡博物館可躲雨，但海濱長廊才是精華，雨天整體體驗打折。"},
+    parnu:{wx:"sun", a:["out","out","out"],
+      rain:"怕雨路線：海灘小鎮雨天沒戲，直接改排塔林市區室內線。"},
+    helsinki:{wx:"any", a:["mix","mix","out"],
+      rain:"變通版：大教堂＋Old Market Hall＋岩石教堂（Temppeliaukio）可躲雨，渡輪照開；Suomenlinna 留晴天。"}
+  }
+};
+function applyWx(R,meta){ Object.keys(meta).forEach(function(k){ if(!R[k])return; R[k].wx=meta[k].wx; R[k].rain=meta[k].rain;
+  meta[k].a.forEach(function(v,i){ if(R[k].acts[i]) R[k].acts[i].in=v; }); }); }
+applyWx(SE_REGIONS,WXMETA.se); applyWx(EE_REGIONS,WXMETA.ee);
+
+/* ================= 住宿圓心 · 交通時間（基準估計） ================= */
+var TTMETA = {
+  se:{ gamla:{tt:20, via:"步行 20 分，或地鐵 T-Centralen→Gamla stan", gq:"Stortorget, Gamla Stan, Stockholm"},
+       djur:{tt:35, via:"步行至 Kungsträdgården＋電車 7 號到 Vasa", gq:"Vasa Museum, Stockholm"},
+       city:{tt:12, via:"步行即達（Hötorget 約 10 分）", gq:"Hötorgshallen, Stockholm"},
+       soder:{tt:25, via:"地鐵至 Slussen / Mariatorget", gq:"Fotografiska, Stockholm"},
+       isl:{tt:55, via:"步行至 Nybrokajen＋渡船 25–30 分", gq:"Fjäderholmarna"},
+       drott:{tt:45, via:"地鐵綠線 Brommaplan＋公車；或市政廳碼頭搭船 1hr", gq:"Drottningholm Palace"} },
+  ee:{ oldtown:{tt:18, via:"步行約 15–20 分", gq:"Raekoja plats, Tallinn"},
+       market:{tt:25, via:"步行 25 分，或電車＋步行", gq:"Balti Jaama Turg, Tallinn"},
+       coast:{tt:15, via:"步行 15 分，或電車兩站（飯店就在 Kadriorg 這側）", gq:"Kadriorg Palace, Tallinn"},
+       viru:{tt:70, via:"先至巴士站＋往 Loksa 方向巴士，共約 70 分", gq:"Viru Bog, Estonia"},
+       keila:{tt:75, via:"先至 Balti jaam＋近郊巴士，共約 75 分", gq:"Keila-Joa juga"},
+       haapsalu:{tt:115, via:"至 Bussijaam＋長途巴士，共約 2 hr", gq:"Haapsalu"},
+       parnu:{tt:125, via:"至 Bussijaam＋Lux Express，共約 2 hr", gq:"Pärnu"},
+       helsinki:{tt:150, via:"至 D 碼頭（步行 25 分或 Bolt 7 分）＋渡輪 2 hr", gq:"Tallinn Old City Harbour D-terminal"} }
+};
+function applyTt(R,meta){ Object.keys(meta).forEach(function(k){ if(!R[k])return; R[k].tt=meta[k].tt; R[k].via=meta[k].via; R[k].gq=meta[k].gq; }); }
+applyTt(SE_REGIONS,TTMETA.se); applyTt(EE_REGIONS,TTMETA.ee);
+
+/* ================= 圖片備援 · 彈窗圖文（Wikipedia 縮圖） ================= */
+var WIKIMETA = {
+  se:{ gamla:{rw:"Gamla stan", w:["Stortorget","Stockholm Palace","Storkyrkan","Mårten Trotzigs gränd","Nobel Prize Museum"]},
+       djur:{rw:"Vasa Museum", w:["Vasa Museum","Skansen","ABBA The Museum","Gröna Lund","Rosendals Trädgård"]},
+       city:{rw:"Stockholm City Hall", w:["Stockholm City Hall","Kungsträdgården","Stockholm Concert Hall","Sergels torg"]},
+       soder:{rw:"Södermalm", w:["Fotografiska","Monteliusvägen","Södermalm","Skinnarviksberget"]},
+       isl:{rw:"Fjäderholmarna", w:["Fjäderholmarna","Fjäderholmarna","Fjäderholmarna"]},
+       drott:{rw:"Drottningholm Palace", w:["Drottningholm Palace","Chinese Pavilion at Drottningholm","Drottningholm Palace Theatre"]} },
+  ee:{ oldtown:{rw:"Tallinn Town Hall", w:["Tallinn Town Hall","Toompea","Alexander Nevsky Cathedral, Tallinn","Walls of Tallinn","Kiek in de Kök","St Nicholas Church, Tallinn"]},
+       market:{rw:"Telliskivi Creative City", w:["Balti Jaam Market","Telliskivi Creative City","Telliskivi Creative City","Fotografiska","Telliskivi Creative City"]},
+       coast:{rw:"Kadriorg Palace", w:["Kadriorg Palace","Kumu","Pirita, Tallinn","Seaplane Harbour"]},
+       viru:{rw:"Viru Bog", w:["Viru Bog","Viru Bog","Lahemaa National Park"]},
+       keila:{rw:"Keila-Joa", w:["Keila-Joa","Keila-Joa","Keila-Joa"]},
+       haapsalu:{rw:"Haapsalu", w:["Haapsalu Castle","Haapsalu","Haapsalu"]},
+       parnu:{rw:"Pärnu", w:["Pärnu","Pärnu","Pärnu"]},
+       helsinki:{rw:"Helsinki Cathedral", w:["Helsinki Cathedral","Market Square, Helsinki","Suomenlinna"]} }
+};
+function applyWiki(R,meta){ Object.keys(meta).forEach(function(k){ if(!R[k])return; R[k].rw=meta[k].rw;
+  meta[k].w.forEach(function(t,i){ if(R[k].acts[i]) R[k].acts[i].w=t; }); }); }
+applyWiki(SE_REGIONS,WIKIMETA.se); applyWiki(EE_REGIONS,WIKIMETA.ee);
+var FOODWIKI = { se:{ saluhall:"Östermalms Saluhall", rosendals:"Rosendals Trädgård" },
+                 ee:{ oldehansa:"Olde Hansa", maiasmokk:"Maiasmokk", baltijaama:"Balti Jaam Market", kauppatori:"Market Square, Helsinki" } };
+var FIKAWIKI = ["Kanelbulle", "Kanelbulle", "Princess cake", "Räksmörgås", "Pick and mix"];
+var SNACKWIKI = ["Kohuke", "Rye bread", "European sprat", "Vana Tallinn"];
+
+var WIKI = {};
+function resolveWiki(title,cb){
+  if(!title){ cb(null); return; }
+  if(WIKI[title]!==undefined){ cb(WIKI[title]); return; }
+  fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(title.replace(/ /g,"_")))
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(j){ var u=null;
+      if(j&&j.thumbnail&&j.thumbnail.source) u=j.thumbnail.source;
+      WIKI[title]=u; cb(u); })
+    .catch(function(){ WIKI[title]=null; cb(null); });
+}
+function imgFb(el,title){
+  if(el.dataset.fb||!title){ el.style.display="none"; return; }
+  el.dataset.fb=1;
+  resolveWiki(title,function(u){ if(u){ el.src=u; } else { el.style.display="none"; } });
+}
+
+var LODGE = { se:{name:"Generator Stockholm", q:"Generator Stockholm"},
+              ee:{name:"Hilton Tallinn Park", q:"Hilton Tallinn Park"} };
+var DEP = { se:{}, ee:{} };
+function getDep(b,d){ return DEP[b][d]||"09:00"; }
+function setDep(b,d,v){ if(v) DEP[b][d]=v; render(); }
+function setLodge(b,v){ v=(v||"").trim();
+  if(v){ LODGE[b].name=v; LODGE[b].q=v; }
+  else { LODGE[b]= b==="se" ? {name:"Generator Stockholm",q:"Generator Stockholm"} : {name:"Hilton Tallinn Park",q:"Hilton Tallinn Park"}; }
+  render(); }
+
+/* ---- 住宿段（多段飯店 · 日期範圍＝住宿夜） ---- */
+var STAYS = [
+  {city:"斯京", name:"Generator Stockholm", q:"Generator Stockholm", from:"2026-06-30", to:"2026-07-03"},
+  {city:"塔林", name:"Hilton Tallinn Park", q:"Hilton Tallinn Park", from:"2026-07-04", to:"2026-07-09"},
+  {city:"海上", name:"Baltic Queen 過夜渡輪", q:"", from:"2026-07-10", to:"2026-07-10", fixed:true},
+  {city:"斯京", name:"Generator Stockholm（暫定）", q:"Generator Stockholm", from:"2026-07-11", to:"2026-07-11"}
+];
+function isoAdd(iso,n){ var d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n);
+  return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function mdF(iso){ return (+iso.slice(5,7))+"/"+(+iso.slice(8,10)); }
+function nightsOf(s){ return Math.round((new Date(s.to+"T12:00:00")-new Date(s.from+"T12:00:00"))/86400000)+1; }
+function dayISO(b,d){ return b==="se" ? BOARDS.se.iso[d-1] : eeISO(d); }
+function stayCover(s,iso){ return s.from<=iso && iso<=s.to; }
+function stayFor(iso){
+  var prev=isoAdd(iso,-1), i;
+  for(i=0;i<STAYS.length;i++){ if(!STAYS[i].fixed && stayCover(STAYS[i],prev)) return {s:STAYS[i], arriveDay:false}; }
+  for(i=0;i<STAYS.length;i++){ if(!STAYS[i].fixed && stayCover(STAYS[i],iso)) return {s:STAYS[i], arriveDay:true}; }
+  return null;
+}
+function setStayName(i,v){ v=(v||"").trim(); if(!v) return;
+  STAYS[i].name=v; if(!STAYS[i].fixed) STAYS[i].q=v; renderStays(); render(); }
+function renderStays(){
+  var el=document.getElementById("stayList"); if(!el) return;
+  el.innerHTML=STAYS.map(function(s,i){
+    var range=mdF(s.from)+(s.to!==s.from?"–"+mdF(s.to):"")+"（"+nightsOf(s)+" 晚）· "+s.city;
+    if(s.fixed) return '<div class="stayrow"><span class="srange">'+range+'</span><span class="lstat">⛴ '+s.name+'</span></div>';
+    return '<div class="stayrow"><span class="srange">'+range+'</span><input class="lin" value="'+s.name.replace(/"/g,"&quot;")+'" onchange="setStayName('+i+',this.value)"></div>';
+  }).join("");
+}
+
+/* ================= 旅費：預估 + 記帳 ================= */
+var LEGS=[
+  {id:"a", name:"斯京 · 去程", from:"2026-06-30", to:"2026-07-04", days:[["se",1],["se",2],["se",3],["se",4],["se",5]]},
+  {id:"b", name:"塔林", from:"2026-07-05", to:"2026-07-10", days:[["ee",1],["ee",2],["ee",3],["ee",4],["ee",5],["ee",6]]},
+  {id:"c", name:"斯京 · 返程", from:"2026-07-11", to:"2026-07-12", days:[["se",6],["se",7]]}
+];
+function legFor(date){ for(var i=0;i<LEGS.length;i++){ if(date>=LEGS[i].from&&date<=LEGS[i].to) return LEGS[i]; } return null; }
+var PEOPLE=4, EXP=[], PENDIMG=null, STORE_OK=true;
+function loadExp(){ try{ var raw=localStorage.getItem("balticLedgerV1");
+  if(raw){ var o=JSON.parse(raw); EXP=o.exp||[]; PEOPLE=o.people||4; } }catch(e){ STORE_OK=false; } }
+function saveExp(){ try{ localStorage.setItem("balticLedgerV1", JSON.stringify({people:PEOPLE, exp:EXP})); STORE_OK=true; }
+  catch(e){ STORE_OK=false; } }
+function setPeople(d){ PEOPLE=Math.min(9,Math.max(1,PEOPLE+d)); saveExp(); render(); }
+function estLeg(L){ var t={SEK:[0,0],EUR:[0,0]};
+  L.days.forEach(function(bd){ var p=PLAN[bd[0]][bd[1]]; if(!p) return;
+    p.meals.forEach(function(id){ var f=BOARDS[bd[0]].fmap[id];
+      if(f&&f.price){ t[f.price.cur][0]+=f.price.lo; t[f.price.cur][1]+=f.price.hi; } }); });
+  return t; }
+function estGrand(){ var lo=0,hi=0;
+  LEGS.forEach(function(L){ var t=estLeg(L);
+    lo+=(t.SEK[0]*fxRate("SEK")+t.EUR[0]*fxRate("EUR"))*PEOPLE;
+    hi+=(t.SEK[1]*fxRate("SEK")+t.EUR[1]*fxRate("EUR"))*PEOPLE; });
+  return [ntR(lo),ntR(hi)]; }
+function renderBudget(){ var box=document.getElementById("budgetBox"); if(!box) return; var h="";
+  h+='<div class="brow" style="border-top:0"><span class="bl">同行人數（預估用）</span><span class="pstep"><button onclick="setPeople(-1)">−</button><b>'+PEOPLE+'</b> 人<button onclick="setPeople(1)">＋</button></span></div>';
+  LEGS.forEach(function(L){ var t=estLeg(L);
+    var lo=ntR((t.SEK[0]*fxRate("SEK")+t.EUR[0]*fxRate("EUR"))*PEOPLE), hi=ntR((t.SEK[1]*fxRate("SEK")+t.EUR[1]*fxRate("EUR"))*PEOPLE);
+    var loc=[]; if(t.SEK[1]) loc.push("SEK "+(t.SEK[0]*PEOPLE)+"–"+(t.SEK[1]*PEOPLE));
+    if(t.EUR[1]) loc.push("€"+eF(t.EUR[0]*PEOPLE)+"–"+eF(t.EUR[1]*PEOPLE));
+    h+='<div class="brow"><span class="bl">'+L.name+'（'+mdF(L.from)+'–'+mdF(L.to)+'）</span><span class="bv">'+(loc.length?loc.join(" ＋ ")+" ≈ ":"")+'NT$'+thou(lo)+'–'+thou(hi)+'</span></div>'; });
+  var G=estGrand();
+  h+='<div class="brow g"><span class="bl">預估合計（已勾選正餐 × '+PEOPLE+' 人）</span><span class="bv">NT$'+thou(G[0])+'–'+thou(G[1])+'</span></div>';
+  h+='<div class="lt">僅含已勾選的正餐；零食、交通、門票另計。勾選或匯率變動即時重算。</div>';
+  box.innerHTML=h; }
+function expCurTxt(c){ return c==="TWD"?"NT$":(c==="EUR"?"€":"SEK "); }
+function renderLedger(){
+  var lt=document.getElementById("ledgerTotals"), ll=document.getElementById("ledgerList"); if(!lt||!ll) return;
+  var per={}, cats={}, g=0;
+  LEGS.forEach(function(L){ per[L.id]={SEK:0,EUR:0,TWD:0,nt:0}; });
+  EXP.forEach(function(e){ var L=legFor(e.date)||LEGS[0]; per[L.id][e.cur]+=(+e.amt); var v=(+e.amt)*fxRate(e.cur); per[L.id].nt+=v; g+=v; cats[e.cat]=(cats[e.cat]||0)+v; });
+  var h="";
+  LEGS.forEach(function(L){ var p=per[L.id]; if(!(p.SEK||p.EUR||p.TWD)) return;
+    var loc=[]; if(p.SEK) loc.push("SEK "+Math.round(p.SEK)); if(p.EUR) loc.push("€"+eF(p.EUR)); if(p.TWD) loc.push("NT$"+thou(Math.round(p.TWD)));
+    h+='<div class="brow"><span class="bl">'+L.name+'</span><span class="bv">'+loc.join(" ＋ ")+' ≈ NT$'+thou(ntR(p.nt))+'</span></div>'; });
+  h+='<div class="brow g"><span class="bl">實際合計（'+EXP.length+' 筆）</span><span class="bv">NT$'+thou(ntR(g))+'</span></div>';
+  var ck=Object.keys(cats);
+  if(ck.length) h+='<div class="lt">'+ck.map(function(c){return c+" NT$"+thou(ntR(cats[c]));}).join(" · ")+'</div>';
+  lt.innerHTML=h;
+  ll.innerHTML=EXP.slice().sort(function(a,b){return a.date<b.date?1:(a.date>b.date?-1:b.id-a.id);}).map(function(e){
+    return '<div class="xrow"><span class="xd">'+mdF(e.date)+'</span><span>'+e.cat+'</span><span class="bl">'+(e.note||"")+'</span>'
+      +(e.img?'<img src="'+e.img+'" onclick="showReceipt('+e.id+')" alt="">':'')
+      +'<span class="xa">'+expCurTxt(e.cur)+e.amt+(e.cur!=="TWD"?' <small style="color:var(--faint)">≈'+thou(ntR((+e.amt)*fxRate(e.cur)))+'</small>':'')+'</span>'
+      +'<button class="xdel noprint" onclick="delExp('+e.id+')">✕</button></div>'; }).join("")
+    || '<div class="empty">還沒有記帳——上面輸入金額或拍收據開始。</div>';
+  var sn=document.getElementById("storeNote");
+  if(sn) sn.textContent= STORE_OK ? "（已自動保存於此裝置）" : "⚠ 此開啟方式無法自動保存，離開前請按「匯出」備份。";
+}
+function addExp(){
+  var dt=document.getElementById("xDate").value||todayISO();
+  if(dt<"2026-06-30") dt="2026-06-30"; if(dt>"2026-07-12") dt="2026-07-12";
+  var amt=parseFloat(document.getElementById("xAmt").value);
+  if(!(amt>0)){ toast("請先輸入金額"); return; }
+  EXP.push({ id:Date.now(), date:dt, cat:document.getElementById("xCat").value,
+    cur:document.getElementById("xCur").value, amt:Math.round(amt*100)/100,
+    note:(document.getElementById("xNote").value||"").trim(), img:PENDIMG });
+  PENDIMG=null; var pv=document.getElementById("rcpPrev"); if(pv){pv.style.display="none"; pv.src="";}
+  document.getElementById("xAmt").value=""; document.getElementById("xNote").value=""; updXPreview();
+  saveExp(); renderLedger(); toast(STORE_OK?"已記一筆":"已記一筆（未自動保存，記得匯出）");
+}
+function delExp(id){ EXP=EXP.filter(function(e){return e.id!==id;}); saveExp(); renderLedger(); }
+function pickRcp(inp){ var f=inp.files&&inp.files[0]; inp.value=""; if(!f) return;
+  var rd=new FileReader();
+  rd.onload=function(){ var img=new Image();
+    img.onload=function(){ var c=document.createElement("canvas"), m=Math.max(img.width,img.height), s=m>900?900/m:1;
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      PENDIMG=c.toDataURL("image/jpeg",0.72);
+      var pv=document.getElementById("rcpPrev"); pv.src=PENDIMG; pv.style.display="inline-block";
+      syncCur();
+      var cc=document.getElementById("xCur").value;
+      toast("收據已附上 · 幣別自動判定 "+(cc==="EUR"?"€（塔林段）":"SEK（瑞典段）")+"，填金額按「＋ 新增」"); };
+    img.src=rd.result; };
+  rd.readAsDataURL(f);
+}
+function showReceipt(id){ var e=null; EXP.forEach(function(x){ if(x.id===id) e=x; }); if(!e) return;
+  showDetail("記帳 · "+mdF(e.date)+"（"+((legFor(e.date)||{}).name||"")+"）",
+    e.cat+" · "+expCurTxt(e.cur)+e.amt, e.note||"（無備註）", "var(--ink)", null, e.img||null); }
+function todayISO(){ var t=new Date(); return t.getFullYear()+"-"+pad2(t.getMonth()+1)+"-"+pad2(t.getDate()); }
+function curForDate(dt){ var L=legFor(dt); return (L&&L.id==="b") ? "EUR" : "SEK"; }
+function syncCur(){ var d=document.getElementById("xDate").value||todayISO();
+  var sel=document.getElementById("xCur"); if(sel) sel.value=curForDate(d); updXPreview(); }
+function updXPreview(){ var el=document.getElementById("xNt"); if(!el) return;
+  var a=parseFloat(document.getElementById("xAmt").value), c=document.getElementById("xCur").value;
+  el.textContent=(a>0&&c!=="TWD") ? ("≈ NT$"+thou(ntR(a*fxRate(c)))) : ""; }
+function exportExp(){ var data=JSON.stringify({people:PEOPLE, exp:EXP.map(function(e){return {id:e.id,date:e.date,cat:e.cat,cur:e.cur,amt:e.amt,note:e.note};})});
+  fallbackCopy(data); toast("記帳 JSON 已複製（不含照片），存到備忘錄即可"); }
+function importExp(){ var raw=prompt("貼上先前匯出的記帳 JSON："); if(!raw) return;
+  try{ var o=JSON.parse(raw); if(!o||!o.exp) throw 0;
+    if(!confirm("匯入 "+o.exp.length+" 筆，將取代目前清單？")) return;
+    EXP=o.exp; PEOPLE=o.people||PEOPLE; saveExp(); render(); toast("已匯入"); }
+  catch(e){ toast("格式看不懂，請確認是匯出的 JSON"); } }
+
+/* ================= 存檔（整份行程 · 自動今天） ================= */
+function dayStatus(iso){ var t=todayISO(); return iso<t ? "done" : (iso===t ? "today" : "future"); }
+var PLAN_LOADED=false;
+function sanitizePlan(){
+  ["se","ee"].forEach(function(b){ var B=BOARDS[b];
+    Object.keys(PLAN[b]).forEach(function(k){ var d=+k, p=PLAN[b][k];
+      if(!p||d<1||d>B.count){ delete PLAN[b][k]; return; }
+      if(p.region && !B.regions[p.region]){ p.region=null; p.meals=[]; }
+      p.meals=(p.meals||[]).filter(function(id){ return B.fmap[id] && eligible(b,B.fmap[id],p.region); });
+    }); });
+}
+function planState(){ return { v:1, plan:PLAN, wx:WX, dep:DEP, fx:FX.mode,
+  stays:STAYS.map(function(st){ return st.fixed?null:st.name; }) }; }
+function applyState(o){
+  if(!o) return;
+  if(o.plan) PLAN=o.plan;
+  if(o.wx) WX=o.wx;
+  if(o.dep) DEP=o.dep;
+  if(o.fx) FX.mode=o.fx;
+  if(o.stays) o.stays.forEach(function(n,i){ if(n&&STAYS[i]&&!STAYS[i].fixed){ STAYS[i].name=n; STAYS[i].q=n; } });
+  ensure("se"); ensure("ee"); sanitizePlan();
+}
+function savePlan(){ if(!PLAN_LOADED) return;
+  try{ localStorage.setItem("balticPlanV1", JSON.stringify(planState())); STORE_OK=true; }
+  catch(e){ STORE_OK=false; }
+  updStoreNotes(); }
+function loadPlan(){ try{ var raw=localStorage.getItem("balticPlanV1");
+    if(raw) applyState(JSON.parse(raw)); }
+  catch(e){ STORE_OK=false; }
+  PLAN_LOADED=true; }
+function updStoreNotes(){
+  var m = STORE_OK ? "已自動保存於此裝置 · 換裝置用「匯出備份」" : "⚠ 此開啟方式無法自動保存 — 離開前請按「匯出備份」";
+  var a=document.getElementById("saveNote"); if(a) a.textContent=m; }
+function exportAll(){
+  var pack=planState(); pack.people=PEOPLE;
+  pack.exp=EXP.map(function(e){ return {id:e.id,date:e.date,cat:e.cat,cur:e.cur,amt:e.amt,note:e.note}; });
+  fallbackCopy(JSON.stringify(pack)); toast("完整備份已複製（行程＋記帳，不含收據照片）"); }
+function importAll(){ var raw=prompt("貼上先前匯出的備份 JSON："); if(!raw) return;
+  try{ var o=JSON.parse(raw); if(!o||!o.plan) throw 0;
+    if(!confirm("匯入備份？將覆蓋目前的行程安排"+(o.exp?"與 "+o.exp.length+" 筆記帳":"")+"。")) return;
+    applyState(o);
+    if(o.exp) EXP=o.exp;
+    if(o.people) PEOPLE=o.people;
+    saveExp(); render(); toast("備份已匯入"); }
+  catch(e){ toast("格式看不懂，請確認是「匯出備份」的內容"); } }
+function addMin(hhmm,m){ var p=hhmm.split(":"), t=(+p[0])*60+(+p[1])+m; t=((t%1440)+1440)%1440; return pad2(Math.floor(t/60))+":"+pad2(t%60); }
+function gmUrl(b,d,key){ var r=BOARDS[b].regions[key];
+  var st=stayFor(dayISO(b,d)), oq=(st&&st.s.q)?st.s.q:LODGE[b].q;
+  return "https://www.google.com/maps/dir/?api=1&travelmode=transit&origin="+encodeURIComponent(oq)+"&destination="+encodeURIComponent(r.gq||r.en); }
+function nowEta(b,d){ var p=PLAN[b][d]; if(!p||!p.region) return; var r=BOARDS[b].regions[p.region];
+  var n=new Date(), cur=pad2(n.getHours())+":"+pad2(n.getMinutes());
+  toast("現在 "+cur+" 出發 → 約 "+addMin(cur,r.tt)+" 抵達"+r.name); }
+
+var WXICON={sun:"☀️",mix:"🌦",rain:"☔"};
+var WXNAME={sun:"晴天",mix:"午後變天",rain:"雨天"};
+var INICON={"in":"☂","out":"☀","mix":"🌤"};
+var RECTITLE={sun:"☀️ 晴天建議：先把「看天吃飯」的路線用掉",
+              mix:"🌦 午後變天建議：選上午戶外、午後室內都行的路線",
+              rain:"☔ 雨天建議：直上室內王牌路線"};
+function wxLabel(w){ return w==="rain"?"☔ 雨天首選":(w==="sun"?"☀️ 看天吃飯":"🌦 晴雨皆宜"); }
+
+var WX = { se:{}, ee:{} }; /* 開檔後按「一鍵套用建議」，天氣自動照預報標好 */
+function setWx(b,d,v){ WX[b][d]=(v===null||WX[b][d]===v)?null:v; render(); }
+
+function actChips(b,key,fn){
+  var r=BOARDS[b].regions[key], out="";
+  r.acts.forEach(function(a,i){ if(fn(a)) out+='<span class="sc" onclick="showInfo(\''+b+'\',\''+key+'\','+i+')">'+INICON[a.in]+' '+a.n+'</span>'; });
+  return out;
+}
+function swapChips(b,d,exclude,w){
+  var B=BOARDS[b];
+  var pri = (w==="sun") ? {sun:0,any:1,rain:2} : (w==="mix" ? {any:0,rain:1,sun:9} : {rain:0,any:1,sun:9});
+  var ks=B.order.filter(function(k){return k!==exclude && pri[B.regions[k].wx]<9;});
+  ks.sort(function(a,c){return pri[B.regions[a].wx]-pri[B.regions[c].wx];});
+  return ks.slice(0,3).map(function(k){var r=B.regions[k];
+    return '<button class="swap" style="--dc:'+r.color+'" onclick="assign(\''+b+'\','+d+',\''+k+'\')">'+r.name+'</button>';}).join("");
+}
+function wxAdvice(b,d,key,w){
+  var r=BOARDS[b].regions[key];
+  if(w==="rain"){
+    if(r.wx==="sun") return '<div class="advice bad"><span class="at">☔ 這條路線怕雨</span>'+r.rain+'<div class="swaps"><span class="swl">改排：</span>'+swapChips(b,d,key,w)+'</div></div>';
+    var ind=actChips(b,key,function(a){return a.in!=="out";});
+    if(r.wx==="rain") return '<div class="advice ok"><span class="at">☔ 雨天首選路線</span>'+r.rain+(ind?'<div class="split"><span class="sl">主打室內</span>'+ind+'</div>':'')+'</div>';
+    return '<div class="advice tip"><span class="at">☔ 雨天走法</span>'+r.rain+(ind?'<div class="split"><span class="sl">主打室內</span>'+ind+'</div>':'')+'</div>';
+  }
+  if(w==="mix"){
+    if(r.wx==="sun") return '<div class="advice bad"><span class="at">🌦 午後變天：這條線整天在外，午後會淋</span>'+r.rain+'<div class="swaps"><span class="swl">改排：</span>'+swapChips(b,d,key,w)+'</div></div>';
+    var am=actChips(b,key,function(a){return a.in!=="in";});
+    var pm=actChips(b,key,function(a){return a.in!=="out";});
+    return '<div class="advice tip"><span class="at">🌦 變天走法：上午趁乾先戶外，午後躲進室內</span>'
+      +(am?'<div class="split"><span class="sl">上午 · 趁乾</span>'+am+'</div>':'')
+      +(pm?'<div class="split"><span class="sl">午後 · 有屋頂</span>'+pm+'</div>':'')+'</div>';
+  }
+  if(w==="sun" && r.wx==="rain") return '<div class="advice tip"><span class="at">☀️ 小提醒</span>這條線室內王牌多——若旅程後面可能下雨，把它留給雨天更划算。</div>';
+  return "";
+}
+
+/* ================= LIVE 預報（Open-Meteo，免金鑰） ================= */
+function eeISO(d){ var n=4+d; return "2026-07-"+(n<10?"0"+n:n); }
+var WXF={sthlm:{},tln:{},ts:null};
+function wIco(c){ if(c===0)return "☀️"; if(c<=2)return "🌤"; if(c===3)return "☁️"; if(c===45||c===48)return "🌫️";
+  if(c>=51&&c<=57)return "🌦"; if(c>=61&&c<=67)return "🌧"; if(c>=71&&c<=77)return "🌨"; if(c>=80&&c<=82)return "🌦"; if(c>=95)return "⛈"; return "🌡"; }
+function modeFrom(c,pop){ var heavy=[63,65,66,67,81,82,95,96,99], light=[51,53,55,56,57,61,80];
+  if(pop>=70||heavy.indexOf(c)>=0) return "rain"; if(pop>=35||light.indexOf(c)>=0) return "mix"; return "sun"; }
+function fcFor(b,d){ if(b==="se") return WXF.sthlm[BOARDS.se.iso[d-1]]||null; return WXF.tln[eeISO(d)]||null; }
+function pad2(n){ return n<10?"0"+n:""+n; }
+function hm(t){ return pad2(t.getHours())+":"+pad2(t.getMinutes()); }
+function setTxt(id,t){ var el=document.getElementById(id); if(el) el.textContent=t; }
+function parseDaily(j,store){ var D=j&&j.daily; if(!D||!D.time) return;
+  D.time.forEach(function(iso,i){ var pop=(D.precipitation_probability_max&&D.precipitation_probability_max[i]!=null)?D.precipitation_probability_max[i]:0;
+    store[iso]={ icon:wIco(D.weather_code[i]), tmax:D.temperature_2m_max[i], tmin:D.temperature_2m_min[i], pop:pop, mode:modeFrom(D.weather_code[i],pop) }; }); }
+function fetchWeather(){ setTxt("wxStatus","預報載入中…");
+  var now=new Date(), start=now.getFullYear()+"-"+pad2(now.getMonth()+1)+"-"+pad2(now.getDate());
+  var q="https://api.open-meteo.com/v1/forecast?daily=weather_code,precipitation_probability_max,temperature_2m_max,temperature_2m_min&timezone=auto&start_date="+start+"&end_date=2026-07-12";
+  Promise.all([
+    fetch(q+"&latitude=59.3293&longitude=18.0686").then(function(r){return r.json();}),
+    fetch(q+"&latitude=59.4370&longitude=24.7536").then(function(r){return r.json();})
+  ]).then(function(rs){ WXF.sthlm={}; WXF.tln={}; parseDaily(rs[0],WXF.sthlm); parseDaily(rs[1],WXF.tln); WXF.ts=new Date();
+    setTxt("wxStatus","已更新 "+hm(WXF.ts)+"（Open-Meteo）· 已自動依預報標記，可手動調整"); applyAllWx(true);
+  }).catch(function(){ setTxt("wxStatus","連線失敗 — 可手動標記天氣，稍後再按更新"); });
+}
+var WDCN=["日","一","二","三","四","五","六"];
+function wd(iso){ var d=new Date(iso+"T12:00:00"); return WDCN[d.getDay()]; }
+function wxStripHtml(b){
+  var B=BOARDS[b], out="";
+  for(var d=1;d<=B.count;d++){
+    var iso=(b==="se")?B.iso[d-1]:eeISO(d), f=fcFor(b,d);
+    if(!f) continue;
+    var on=WX[b][d]===f.mode, tdy=(iso===todayISO());
+    out+='<div class="wxchip'+(on?" on":"")+(tdy?" tdy":"")+'" title="點一下套用/取消建議" onclick="setWx(\''+b+'\','+d+',\''+f.mode+'\')"><b>'+(tdy?"今天 · ":"")+B.dates[d-1]+'（'+wd(iso)+'）</b>'+f.icon+' '+Math.round(f.tmin)+'–'+Math.round(f.tmax)+'° · 💧'+f.pop+'%</div>';
+  }
+  return out;
+}
+function renderWxStrips(){
+  var s=document.getElementById("seWx"); if(s) s.innerHTML=wxStripHtml("se");
+  var e=document.getElementById("eeWx"); if(e) e.innerHTML=wxStripHtml("ee");
+}
+function applyAllWx(quiet){ var n=0;
+  [["se",BOARDS.se.count],["ee",BOARDS.ee.count]].forEach(function(bc){ var b=bc[0];
+    for(var d=1;d<=bc[1];d++){ var f=fcFor(b,d); if(f&&!WX[b][d]){ WX[b][d]=f.mode; n++; } } });
+  render();
+  if(quiet){ if(n) toast("已依預報自動標記 "+n+" 天（可手動調整）"); }
+  else toast(n?("已依預報標記 "+n+" 天（手動標過的不動）"):"沒有可套用的預報 — 先按「更新」");
+  return n; }
+
+/* ================= BOARDS ================= */
+var BOARDS = {
+  se:{ label:"斯德哥爾摩", regions:SE_REGIONS, order:SE_ORDER, foods:SE_FOODS, lockable:SE_LOCKABLE,
+       count:7, fixed:true,
+       subs:["6/30 週二 · 抵達傍晚","7/1 週三 · 整天","7/2 週四 · 整天","7/3 週五 · 整天","7/4 週六 · 航班日","7/11 週六 · 回斯京","7/12 週日 · 返程日"],
+       tags:[null,null,null,null,"✈ 21:25 · 約 18:30 前市區","約 10:30 抵 · 下午整段可玩","約 16:15 前市區 · ✈ 19:10"],
+       dates:["6/30","7/1","7/2","7/3","7/4","7/11","7/12"],
+       iso:["2026-06-30","2026-07-01","2026-07-02","2026-07-03","2026-07-04","2026-07-11","2026-07-12"],
+       targets:["seDays","seDays","seDays","seDays","seDays","seDay5","seDay5"], poolEl:"sePool" },
+  ee:{ label:"塔林", regions:EE_REGIONS, order:EE_ORDER, foods:EE_FOODS, lockable:EE_LOCKABLE,
+       count:6, fixed:true,
+       subs:["7/5 週日","7/6 週一","7/7 週二","7/8 週三","7/9 週四","7/10 週五 · 渡輪日"],
+       tags:[null,null,null,"原定赫爾辛基 · 可彈性搬動",null,"約 16:00 前市區 · ⛴ 18:00"],
+       dates:["7/5","7/6","7/7","7/8","7/9","7/10"],
+       daysEl:"eeDays", poolEl:"eePool" }
+};
+Object.keys(BOARDS).forEach(function(b){ var m={}; BOARDS[b].foods.forEach(function(f){m[f.id]=f;}); BOARDS[b].fmap=m; });
+
+/* ================= 價格（2026 夏人均參考區間） · 即時匯率 ================= */
+var PRICEMETA = {
+  se:{ grillska:{cur:"SEK",lo:100,hi:160}, kastanjen:{cur:"SEK",lo:150,hi:250}, rosendals:{cur:"SEK",lo:150,hi:250},
+       ulla:{cur:"SEK",lo:300,hi:450}, kajsas:{cur:"SEK",lo:145,hi:185}, saluhall:{cur:"SEK",lo:200,hi:400},
+       krypin:{cur:"SEK",lo:250,hi:400}, blaporten:{cur:"SEK",lo:150,hi:250}, k25:{cur:"SEK",lo:120,hi:180},
+       pelikan:{cur:"SEK",lo:300,hi:450}, mftp:{cur:"SEK",lo:200,hi:300}, hermans:{cur:"SEK",lo:230,hi:290},
+       rokeriet:{cur:"SEK",lo:250,hi:400}, drottcafe:{cur:"SEK",lo:80,hi:150}, sepicnic:{cur:"SEK",lo:80,hi:150} },
+  ee:{ maiasmokk:{cur:"EUR",lo:8,hi:15}, rataskaevu:{cur:"EUR",lo:25,hi:40}, oldehansa:{cur:"EUR",lo:30,hi:50},
+       draakon:{cur:"EUR",lo:2,hi:8}, kompressor:{cur:"EUR",lo:7,hi:12}, fhoone:{cur:"EUR",lo:10,hi:20},
+       taldrik:{cur:"EUR",lo:10,hi:18}, monrepos:{cur:"EUR",lo:35,hi:55}, nop:{cur:"EUR",lo:8,hi:15},
+       baltijaama:{cur:"EUR",lo:5,hi:12}, noa:{cur:"EUR",lo:50,hi:80}, picnic:{cur:"EUR",lo:5,hi:10},
+       localtown:{cur:"EUR",lo:12,hi:20}, kauppatori:{cur:"EUR",lo:10,hi:18}, helrest:{cur:"EUR",lo:20,hi:35} }
+};
+Object.keys(PRICEMETA).forEach(function(b){ Object.keys(PRICEMETA[b]).forEach(function(id){ if(BOARDS[b].fmap[id]) BOARDS[b].fmap[id].price=PRICEMETA[b][id]; }); });
+var FIKAPRICE=[{cur:"SEK",lo:35,hi:55,u:"每顆"},{cur:"SEK",lo:38,hi:58,u:"每顆"},{cur:"SEK",lo:45,hi:70,u:"每塊"},{cur:"SEK",lo:145,hi:225,u:"每份"},{cur:"SEK",lo:9,hi:13,u:"每 100g"}];
+var SNACKPRICE=[{cur:"EUR",lo:0.4,hi:0.9,u:"每條"},{cur:"EUR",lo:1.5,hi:3,u:"每條"},{cur:"EUR",lo:2,hi:4,u:"每罐"},{cur:"EUR",lo:12,hi:18,u:"每瓶"}];
+FIKAPRICE.forEach(function(p,i){ if(FIKA[i]) FIKA[i].price=p; });
+SNACKPRICE.forEach(function(p,i){ if(SNACKS[i]) SNACKS[i].price=p; });
+
+var FX={mode:"local",eur:null,sek:null,ts:null,fallback:{eur:36,sek:2.95}};
+function fxRate(cur){ if(cur==="TWD") return 1; return cur==="EUR"?(FX.eur||FX.fallback.eur):(FX.sek||FX.fallback.sek); }
+function ntR(n){ n=Math.round(n); return n>=1000?Math.round(n/10)*10:n; }
+function thou(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+function eF(x){ return (x<10&&x%1!==0)?x.toFixed(1):String(Math.round(x)); }
+function priceLocal(p){ return p.cur==="EUR"?("€"+eF(p.lo)+"–"+eF(p.hi)):("SEK "+p.lo+"–"+p.hi); }
+function priceTwd(p){ var r=fxRate(p.cur); return "NT$"+thou(ntR(p.lo*r))+"–"+thou(ntR(p.hi*r)); }
+function priceBadge(f){ var p=f.price; if(!p) return f.tier; return FX.mode==="twd"?priceTwd(p):priceLocal(p); }
+function priceFull(p,unit){ if(!p) return ""; return (p.u||unit||"人均")+"約 "+priceLocal(p)+"（≈"+priceTwd(p)+"）"; }
+function setCur(c){ FX.mode=c;
+  Array.prototype.forEach.call(document.querySelectorAll("#curSeg button"),function(x){x.classList.toggle("on",x.dataset.c===c);}); render(); }
+function fetchFX(){ setTxt("fxStatus","匯率載入中…");
+  fetch("https://open.er-api.com/v6/latest/EUR").then(function(r){return r.json();}).then(function(j){
+    if(!(j&&j.rates&&j.rates.TWD&&j.rates.SEK)) throw 0;
+    FX.eur=j.rates.TWD; FX.sek=j.rates.TWD/j.rates.SEK; FX.ts=new Date();
+    setTxt("fxStatus","1€≈NT$"+FX.eur.toFixed(1)+" · 1 SEK≈NT$"+FX.sek.toFixed(2)+"（"+hm(FX.ts)+" 即時）"); render();
+  }).catch(function(){ FX.ts=null;
+    setTxt("fxStatus","連線失敗 · 備用匯率 1€≈NT$"+FX.fallback.eur+"、1 SEK≈NT$"+FX.fallback.sek); render(); });
+}
+
+var PLAN = { se:{}, ee:{4:{region:"helsinki",meals:[]}} }; /* 7/8 原定赫爾辛基，先排上、可搬動 */
+function ensure(b){ for(var d=1;d<=BOARDS[b].count;d++){ if(!PLAN[b][d]) PLAN[b][d]={region:null,meals:[]}; } }
+ensure("se"); ensure("ee");
+
+/* ================= helpers ================= */
+function eligible(b,food,regionKey){
+  if(!regionKey) return false;
+  var r=BOARDS[b].regions[regionKey];
+  if(food.region) return food.region===regionKey;
+  if(food.kind) return food.kind===r.kind;
+  return false;
+}
+function eligibleFoods(b,regionKey){ return BOARDS[b].foods.filter(function(f){return eligible(b,f,regionKey);}); }
+
+/* ================= actions ================= */
+function setCount(n){ BOARDS.ee.count=n; ensure("ee");
+  Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(x){x.classList.toggle("on",+x.dataset.n===n);});
+  render();
+}
+function assign(b,d,key){
+  if(!key){ clearDay(b,d); return; }
+  if(!PLAN[b][d]) PLAN[b][d]={region:null,meals:[]};
+  PLAN[b][d].region=key;
+  PLAN[b][d].meals=PLAN[b][d].meals.filter(function(id){return eligible(b,BOARDS[b].fmap[id],key);});
+  render();
+}
+function clearDay(b,d){ PLAN[b][d]={region:null,meals:[]}; render(); }
+function toggleMeal(b,d,id){
+  var p=PLAN[b][d]; if(!p||!p.region||!eligible(b,BOARDS[b].fmap[id],p.region)) return;
+  var i=p.meals.indexOf(id);
+  if(i>=0) p.meals.splice(i,1); else p.meals.push(id);
+  render();
+}
+function resetPlan(){ if(!confirm("清空斯京與塔林所有天的安排（含天氣標記與出發時間）？")) return;
+  PLAN={se:{},ee:{}}; WX={se:{},ee:{}}; DEP={se:{},ee:{}}; BOARDS.ee.count=7; ensure("se"); ensure("ee"); setCount(7); toast("已重設"); }
+
+/* ================= render ================= */
+function destOptions(b,sel){
+  var B=BOARDS[b]; var s='<option value="">— 選一個目的地 —</option>';
+  B.order.forEach(function(k){ s+='<option value="'+k+'"'+(sel===k?" selected":"")+'>'+B.regions[k].name+'</option>'; });
+  return s;
+}
+function dayHtml(b,d){
+  var B=BOARDS[b], p=PLAN[b][d], key=p.region, r=key?B.regions[key]:null, w=WX[b][d]||null, html="";
+  html+='<div class="day" data-set="'+(key?1:0)+'" style="--dc:'+(r?r.color:"var(--line)")+'">';
+  html+='<div class="dh"><span class="daynum">'+(b==="se"?("斯京 D"+d):("塔林 D"+d))+'</span>';
+  if(B.subs) html+='<span class="dsub">'+B.subs[d-1]+'</span>';
+  var dst=dayStatus(dayISO(b,d));
+  if(dst==="today") html+='<span class="daytag today">今天</span>';
+  else if(dst==="done") html+='<span class="daytag">已完成 · 可回填</span>';
+  if(B.tags && B.tags[d-1]) html+='<span class="daytag">'+B.tags[d-1]+'</span>';
+  html+='<div class="picker">';
+  html+='<select class="dest" onchange="assign(\''+b+'\','+d+',this.value)">'+destOptions(b,key)+'</select>';
+  if(key) html+='<button class="clearbtn" onclick="clearDay(\''+b+'\','+d+')">清除</button>';
+  html+='</div></div>';
+
+  html+='<div class="wxbar noprint"><span class="wl">天氣</span><div class="wxseg">';
+  [["sun","☀️"],["mix","🌦"],["rain","☔"]].forEach(function(o){
+    html+='<button class="'+(w===o[0]?"on":"")+'" title="'+WXNAME[o[0]]+'" onclick="setWx(\''+b+'\','+d+',\''+o[0]+'\')">'+o[1]+'</button>';
+  });
+  html+='</div>'+(w?'<span class="dsub">'+WXNAME[w]+'（再點一次取消）</span>':'<span class="dsub">點一下，行程跟著天氣調</span>')+'</div>';
+  var fc=fcFor(b,d);
+  if(fc){ html+='<div class="wxf noprint">預報 '+fc.icon+' '+Math.round(fc.tmin)+'–'+Math.round(fc.tmax)+'°C · 降雨 '+fc.pop+'%'
+    +(w===fc.mode?' <span class="fok">✓ 已套用</span>':' <button class="fapply" onclick="setWx(\''+b+'\','+d+',\''+fc.mode+'\')">套用 '+WXICON[fc.mode]+'</button>')+'</div>'; }
+
+  if(r){
+    html+='<div class="dest-body"><div class="dest-top">';
+    html+='<div class="dest-thumb" style="background:'+r.color+'">'+(r.photo?'<img referrerpolicy="no-referrer" loading="lazy" onerror="imgFb(this,\''+(r.rw||"")+'\')" src="'+r.photo+'" alt="">':'')+'</div>';
+    html+='<div><div class="dest-name" style="color:'+r.color+'">'+r.name+'</div><div class="dest-en">'+r.en+'</div><span class="foot">'+r.foot+' · '+wxLabel(r.wx)+'</span></div>';
+    html+='</div>';
+    var st=stayFor(dayISO(b,d)), stName=st?st.s.name:LODGE[b].name;
+    html+='<div class="tt"><div class="ttr"><span class="tl">🚏 從'+stName+(st&&st.arriveDay?'（入住日）':'')+'</span><span>'+r.via+' · 約 '+r.tt+' 分</span></div>';
+    html+='<div class="ttr"><span class="tl">出發</span><input class="tin" type="time" value="'+getDep(b,d)+'" onchange="setDep(\''+b+'\','+d+',this.value)"><span class="eta">→ 預計 <b>'+addMin(getDep(b,d),r.tt)+'</b> 抵達</span>';
+    html+='<button class="fapply" onclick="nowEta(\''+b+'\','+d+')">現在出發？</button><a class="gm" target="_blank" rel="noopener" href="'+gmUrl(b,d,key)+'">Google Maps 即時路線</a></div></div>';
+    html+='<ul class="acts">'+r.acts.map(function(a,i){return '<li class="act" onclick="showInfo(\''+b+'\',\''+key+'\','+i+')"><span class="ai">ⓘ</span>'+a.n+(a.in?'<span class="ab">'+INICON[a.in]+'</span>':'')+'</li>';}).join("")+'</ul>';
+
+    if(w) html+=wxAdvice(b,d,key,w);
+
+    var elig=eligibleFoods(b,key);
+    html+='<div class="food"><div class="fl"><b>今天吃什麼</b><span>'+r.name+'</span></div>';
+    html+='<div class="eat-grid">';
+    elig.forEach(function(f){
+      var on=p.meals.indexOf(f.id)>=0;
+      html+='<div class="eat" role="button" tabindex="0" aria-pressed="'+on+'" style="--dc:'+r.color+'" onclick="showFood(\''+b+'\',\''+f.id+'\')">';
+      html+='<div class="top"><span class="en"><span class="tier">'+priceBadge(f)+'</span><span class="nm">'+f.name+'</span><span class="ai">ⓘ</span></span>';
+      html+='<button class="pick" onclick="event.stopPropagation();toggleMeal(\''+b+'\','+d+',\''+f.id+'\')">'+(on?"✓ 已選":"＋ 排入")+'</button></div>';
+      html+='<span class="d">'+f.note+'</span></div>';
+    });
+    html+='</div>';
+
+    var locked=B.lockable.filter(function(id){return !eligible(b,B.fmap[id],key);});
+    if(locked.length){
+      html+='<div class="locked-row"><div class="ll">🔒 不在這區（點看介紹）</div><div class="chips">';
+      locked.forEach(function(id){ html+='<span class="chip" title="今天去不了，點看介紹" onclick="showFood(\''+b+'\',\''+id+'\')">🔒 '+B.fmap[id].name+'</span>'; });
+      html+='</div></div>';
+    }
+    html+='</div></div>';
+  } else {
+    if(w) html+='<div class="advice tip"><span class="at">'+RECTITLE[w]+'</span><div class="swaps"><span class="swl">一鍵排入：</span>'+swapChips(b,d,null,w)+'</div></div>';
+    html+='<div class="empty">尚未指定路線 — 用上面的選單，或到「據點選單」點這一天。</div>';
+  }
+  html+='</div>';
+  return html;
+}
+function renderDays(b){
+  var B=BOARDS[b];
+  if(B.targets){
+    var parts={};
+    for(var d=1;d<=B.count;d++){ var t=B.targets[d-1]; parts[t]=(parts[t]||"")+dayHtml(b,d); }
+    Object.keys(parts).forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=parts[id]; });
+  } else {
+    var el=document.getElementById(B.daysEl), html="";
+    for(var d2=1;d2<=B.count;d2++) html+=dayHtml(b,d2);
+    el.innerHTML=html;
+  }
+}
+function renderPool(b){
+  var B=BOARDS[b], pool=document.getElementById(B.poolEl), html="";
+  B.order.forEach(function(k){
+    var r=B.regions[k];
+    html+='<div class="pcard" style="--dc:'+r.color+'">';
+    html+='<div class="pimg" style="background:'+r.color+'">'+(r.photo?'<img referrerpolicy="no-referrer" loading="lazy" onerror="imgFb(this,\''+(r.rw||"")+'\')" src="'+r.photo+'" alt="">':'')+'</div>';
+    html+='<div class="pb"><div class="pn">'+r.name+'</div><div class="pe">'+r.en+' · '+r.foot+' · '+wxLabel(r.wx)+'</div>';
+    html+='<div class="pf">'+r.acts.map(function(a,i){return '<span class="pact" onclick="showInfo(\''+b+'\',\''+k+'\','+i+')">'+a.n+'</span>';}).join('')+'</div>';
+    html+='<div class="assign"><div class="al">排入哪一天</div><div class="daybtns">';
+    for(var d=1;d<=B.count;d++){ var act=(PLAN[b][d]&&PLAN[b][d].region===k);
+      html+='<button class="'+(act?"active":"")+'"'+(B.dates?' title="'+B.dates[d-1]+'"':'')+' onclick="assign(\''+b+'\','+d+',\''+k+'\')">'+d+'</button>'; }
+    html+='</div></div></div></div>';
+  });
+  pool.innerHTML=html;
+}
+function summaryRow(b,d){
+  var B=BOARDS[b], p=PLAN[b][d], r=p.region?B.regions[p.region]:null, html="";
+  html+='<div class="srow" style="--dc:'+(r?r.color:"#5a7184")+'">';
+  html+='<div class="sd">'+(B.dates?B.dates[d-1]:("D"+d))+'</div><div class="sdot"></div><div class="smain">';
+  if(r){
+    html+='<b>'+r.name+(WX[b][d]?' '+WXICON[WX[b][d]]:'')+'</b>';
+    html+='<div class="smeals">'+getDep(b,d)+' 出發 → 約 '+addMin(getDep(b,d),r.tt)+' 抵</div>';
+    if(p.meals.length){ html+='<div class="smeals">食 · '+p.meals.map(function(id){return B.fmap[id].name;}).join("、")+'</div>'; }
+    else{ html+='<div class="none">尚未選餐</div>'; }
+  } else { html+='<b style="color:#8aa0a1">未排</b>'; }
+  html+='</div></div>';
+  return html;
+}
+function ferryRow(t,ic){ return '<div class="srow ferry"><div class="sd">'+(ic||"⛴")+'</div><div class="sdot" style="background:#3d565e"></div><div class="smain"><b>'+t+'</b></div></div>'; }
+function renderSummary(){
+  var html="";
+  for(var d=1;d<=5;d++) html+=summaryRow("se",d);
+  html+=ferryRow("7/4 21:25 航班 → 塔林（約 23:20 抵）","✈");
+  for(var e=1;e<=BOARDS.ee.count;e++) html+=summaryRow("ee",e);
+  html+=ferryRow("7/10 18:00（塔林時間）過夜渡輪 → 7/11 10:30 抵斯京（瑞典時間）");
+  html+=summaryRow("se",6);
+  html+=summaryRow("se",7);
+  document.getElementById("sbody").innerHTML=html;
+}
+function renderSnacksAll(){
+  var g=document.getElementById("snackGrid");
+  if(g) g.innerHTML=SNACKS.map(function(s,i){return '<div class="s" onclick="showSnack(\'ee\','+i+')"><b>'+s.name+' <span class="ai">ⓘ</span></b><small>'+s.note+'</small></div>';}).join("");
+  var f=document.getElementById("fikaGrid");
+  if(f) f.innerHTML=FIKA.map(function(s,i){return '<div class="s" onclick="showSnack(\'se\','+i+')"><b>'+s.name+' <span class="ai">ⓘ</span></b><small>'+s.note+'</small></div>';}).join("");
+}
+function render(){ ensure("se"); ensure("ee"); renderDays("se"); renderDays("ee"); renderPool("se"); renderPool("ee"); renderWxStrips(); renderBudget(); renderLedger(); renderSummary(); savePlan(); }
+
+/* ================= info popup ================= */
+function showDetail(over,title,body,color,wiki,direct){
+  document.getElementById("mOver").textContent=over;
+  document.getElementById("mTitle").textContent=title;
+  document.getElementById("mBody").textContent=body;
+  document.getElementById("sheet").style.setProperty("--dc", color||"var(--ink)");
+  var mi=document.getElementById("mImg");
+  mi.style.display="none"; mi.innerHTML="";
+  if(direct){ var di=document.createElement("img"); di.alt="";
+    di.onload=function(){ mi.style.display="block"; };
+    mi.appendChild(di); di.src=direct;
+    document.getElementById("modal").classList.add("show"); return; }
+  var cands=[];
+  if(wiki){ (Array.isArray(wiki)?wiki:[wiki]).forEach(function(t){ if(t&&cands.indexOf(t)<0) cands.push(t); }); }
+  var want=title;
+  function tryC(i){
+    if(i>=cands.length) return;
+    resolveWiki(cands[i],function(u){
+      if(document.getElementById("mTitle").textContent!==want) return;
+      if(!u){ tryC(i+1); return; }
+      var im=document.createElement("img");
+      im.alt=""; im.referrerPolicy="no-referrer";
+      im.onload=function(){ if(document.getElementById("mTitle").textContent!==want) return;
+        mi.innerHTML=""; mi.appendChild(im);
+        if(i>0){ var tg=document.createElement("span"); tg.className="mtag"; tg.textContent="示意圖"; mi.appendChild(tg); }
+        mi.style.display="block"; };
+      im.onerror=function(){ tryC(i+1); };
+      im.src=u;
+    });
+  }
+  tryC(0);
+  document.getElementById("modal").classList.add("show");
+}
+function foodColor(b,f){ if(f.region) return BOARDS[b].regions[f.region].color; if(f.kind==="trip") return (b==="se"?"var(--s-isl)":"var(--r-trip)"); if(f.kind==="helsinki") return "var(--r-helsinki)"; return "var(--ink)"; }
+function regionLabel(b,f){ if(f.region) return BOARDS[b].regions[f.region].name; if(f.kind==="trip") return "出城日 · 帶著走"; if(f.kind==="helsinki") return "赫爾辛基"; return ""; }
+function showInfo(b,rk,i){ var r=BOARDS[b].regions[rk]; if(!r) return; var a=r.acts[i]; if(!a) return; showDetail(r.name, a.n, a.d, r.color, [a.w||null, r.rw||null]); }
+function showFood(b,id){ var f=BOARDS[b].fmap[id]; if(!f) return;
+  var ch=[(FOODWIKI[b]&&FOODWIKI[b][id])||null];
+  if(f.region) ch.push(BOARDS[b].regions[f.region].rw||null);
+  showDetail((f.price?priceFull(f.price,"人均"):f.tier)+" · "+regionLabel(b,f), f.name, f.info||f.note, foodColor(b,f), ch); }
+function showSnack(b,i){ var s=(b==="se"?FIKA:SNACKS)[i]; if(!s) return;
+  showDetail((b==="se"?"Fika · 瑞典每天都有":"隨手抓 · 愛沙尼亞每天都有")+(s.price?" · "+priceFull(s.price):""), s.name, s.info||s.note, b==="se"?"var(--s-gamla)":"var(--r-oldtown)", (b==="se"?FIKAWIKI:SNACKWIKI)[i]||null); }
+function closeInfo(){ document.getElementById("modal").classList.remove("show"); }
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeInfo(); });
+
+/* ================= copy / toast ================= */
+function planText(){
+  var lines=["斯德哥爾摩 × 塔林 — 我的行程",""];
+  lines.push("── 斯德哥爾摩（去程 6/30–7/4 · 宿 "+STAYS[0].name+"）──");
+  for(var d=1;d<=5;d++){
+    var p=PLAN.se[d], r=p.region?SE_REGIONS[p.region]:null;
+    lines.push(BOARDS.se.dates[d-1]+"｜"+(r?r.name:"未排")+(WX.se[d]?" "+WXICON[WX.se[d]]:""));
+    if(r) lines.push("   "+getDep("se",d)+" 出發 → 約 "+addMin(getDep("se",d),r.tt)+" 抵（"+r.via+"）");
+    if(r&&p.meals.length) lines.push("   食："+p.meals.map(function(id){return BOARDS.se.fmap[id].name;}).join("、"));
+  }
+  lines.push("✈ 7/4 21:25 航班 → 塔林（約 23:20 抵）","");
+  lines.push("── 塔林（7/5–7/10 · 宿 "+STAYS[1].name+"）──");
+  for(var e=1;e<=BOARDS.ee.count;e++){
+    var q=PLAN.ee[e], s=q.region?EE_REGIONS[q.region]:null;
+    lines.push(BOARDS.ee.dates[e-1]+"｜"+(s?s.name:"未排")+(WX.ee[e]?" "+WXICON[WX.ee[e]]:""));
+    if(s) lines.push("   "+getDep("ee",e)+" 出發 → 約 "+addMin(getDep("ee",e),s.tt)+" 抵（"+s.via+"）");
+    if(s&&q.meals.length) lines.push("   食："+q.meals.map(function(id){return BOARDS.ee.fmap[id].name;}).join("、"));
+  }
+  lines.push("⛴ 7/10 18:00（塔林時間）過夜渡輪 → 7/11 10:30 抵斯京（瑞典時間）","");
+  lines.push("── 斯德哥爾摩（返程 7/11–7/12 · 宿 "+STAYS[3].name+"）──");
+  for(var g=6;g<=7;g++){
+    var pg=PLAN.se[g], rg=pg.region?SE_REGIONS[pg.region]:null;
+    lines.push(BOARDS.se.dates[g-1]+"｜"+(rg?rg.name:"未排")+(WX.se[g]?" "+WXICON[WX.se[g]]:""));
+    if(rg) lines.push("   "+getDep("se",g)+" 出發 → 約 "+addMin(getDep("se",g),rg.tt)+" 抵（"+rg.via+"）");
+    if(rg&&pg.meals.length) lines.push("   食："+pg.meals.map(function(id){return BOARDS.se.fmap[id].name;}).join("、"));
+  }
+  lines.push("","Fika（瑞典）：kanelbulle、kardemummabulle、prinsesstårta、räkmacka、lösgodis");
+  lines.push("隨手抓（愛沙尼亞）：kohuke、黑麥麵包、煙燻黍鯡、Vana Tallinn");
+  var G=estGrand();
+  lines.push("","預估餐費（已勾選 × "+PEOPLE+" 人）≈ NT$"+thou(G[0])+"–"+thou(G[1])+"；實際記帳 "+EXP.length+" 筆");
+  return lines.join("\n");
+}
+function copyPlan(){
+  var t=planText();
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(function(){toast("行程已複製");},function(){fallbackCopy(t);}); }
+  else fallbackCopy(t);
+}
+function fallbackCopy(t){ var a=document.createElement("textarea"); a.value=t; document.body.appendChild(a); a.select();
+  try{document.execCommand("copy"); toast("行程已複製");}catch(e){toast("複製失敗，請手動選取");} document.body.removeChild(a); }
+var T;
+function toast(m){ var el=document.getElementById("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(T); T=setTimeout(function(){el.classList.remove("show");},1900); }
+
+/* ================= init ================= */
+Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(btn){ btn.addEventListener("click",function(){setCount(+btn.dataset.n);}); });
+Array.prototype.forEach.call(document.querySelectorAll("#curSeg button"),function(btn){ btn.addEventListener("click",function(){setCur(btn.dataset.c);}); });
+renderSnacksAll();
+renderStays();
+loadExp();
+loadPlan();
+Array.prototype.forEach.call(document.querySelectorAll("#curSeg button"),function(x){ x.classList.toggle("on",x.dataset.c===FX.mode); });
+renderStays();
+(function(){ var xd=document.getElementById("xDate"); if(xd){ var ti=todayISO();
+  xd.value = ti<"2026-06-30" ? "2026-06-30" : (ti>"2026-07-12" ? "2026-07-12" : ti); syncCur(); } })();
+render();
+updStoreNotes();
+fetchWeather();
+fetchFX();
+</script>
+</body>
+</html>
