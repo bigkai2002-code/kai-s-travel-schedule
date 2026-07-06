@@ -369,7 +369,7 @@
   <div class="budget" id="budgetBox"></div>
   <div class="ledger">
     <div style="font-family:var(--serif);font-size:16px;font-weight:600;margin:0 0 3px">記帳（分段統計）</div>
-    <div style="font-size:12.5px;color:var(--soft);margin-bottom:10px">拍下收據或手動輸入，依日期自動歸到「斯京去程／塔林／斯京返程」三段；幣別依日期自動判定（塔林段＝€、瑞典段＝SEK），可手動改。<span id="storeNote"></span></div>
+    <div style="font-size:12.5px;color:var(--soft);margin-bottom:10px">拍下收據或手動輸入，依日期自動歸到「斯京去程／塔林／斯京返程」三段；幣別依日期自動判定（塔林段＝€、瑞典段＝SEK）。拍照後會自動嘗試辨識金額（Beta，請核對後再新增）。<span id="storeNote"></span></div>
     <div class="lrow noprint" style="flex-wrap:wrap;gap:8px;margin-bottom:4px">
       <input type="date" id="xDate" class="lin" style="flex:0 0 150px" min="2026-06-30" max="2026-07-12" onchange="syncCur()">
       <select id="xCat" class="dest" style="padding:7px 9px"><option>餐飲</option><option>交通</option><option>門票</option><option>購物</option><option>住宿</option><option>其他</option></select>
@@ -377,7 +377,7 @@
       <input type="number" id="xAmt" class="lin" placeholder="金額" style="flex:0 0 100px" inputmode="decimal" oninput="updXPreview()"><span class="lstat" id="xNt" style="flex:0 0 auto;min-width:80px"></span>
       <input id="xNote" class="lin" placeholder="備註（店名／品項）">
       <button class="lbtn" onclick="document.getElementById('rcpFile').click()">📷 拍收據</button>
-      <img id="rcpPrev" style="display:none;width:34px;height:34px;object-fit:cover;border-radius:6px;border:1px solid var(--line)" alt="">
+      <img id="rcpPrev" style="display:none;width:34px;height:34px;object-fit:cover;border-radius:6px;border:1px solid var(--line)" alt=""><span class="lstat" id="ocrStat" style="flex:1 1 100%"></span>
       <input type="file" id="rcpFile" accept="image/*" capture="environment" style="display:none" onchange="pickRcp(this)">
       <button class="lbtn pri" onclick="addExp()">＋ 新增</button>
     </div>
@@ -781,16 +781,20 @@ function estGrand(){ var lo=0,hi=0;
     lo+=(t.SEK[0]*fxRate("SEK")+t.EUR[0]*fxRate("EUR"))*PEOPLE;
     hi+=(t.SEK[1]*fxRate("SEK")+t.EUR[1]*fxRate("EUR"))*PEOPLE; });
   return [ntR(lo),ntR(hi)]; }
-function renderBudget(){ var box=document.getElementById("budgetBox"); if(!box) return; var h="";
+function actualNt(){ var per={a:0,b:0,c:0}, g=0, n=0;
+  EXP.forEach(function(e){ var L=legFor(e.date)||LEGS[0]; var v=(+e.amt)*fxRate(e.cur); per[L.id]+=v; g+=v; n++; });
+  return {per:per, g:g, n:n}; }
+function renderBudget(){ var box=document.getElementById("budgetBox"); if(!box) return; var h=""; var act=actualNt();
   h+='<div class="brow" style="border-top:0"><span class="bl">同行人數（預估用）</span><span class="pstep"><button onclick="setPeople(-1)">−</button><b>'+PEOPLE+'</b> 人<button onclick="setPeople(1)">＋</button></span></div>';
   LEGS.forEach(function(L){ var t=estLeg(L);
     var lo=ntR((t.SEK[0]*fxRate("SEK")+t.EUR[0]*fxRate("EUR"))*PEOPLE), hi=ntR((t.SEK[1]*fxRate("SEK")+t.EUR[1]*fxRate("EUR"))*PEOPLE);
     var loc=[]; if(t.SEK[1]) loc.push("SEK "+(t.SEK[0]*PEOPLE)+"–"+(t.SEK[1]*PEOPLE));
     if(t.EUR[1]) loc.push("€"+eF(t.EUR[0]*PEOPLE)+"–"+eF(t.EUR[1]*PEOPLE));
-    h+='<div class="brow"><span class="bl">'+L.name+'（'+mdF(L.from)+'–'+mdF(L.to)+'）</span><span class="bv">'+(loc.length?loc.join(" ＋ ")+" ≈ ":"")+'NT$'+thou(lo)+'–'+thou(hi)+'</span></div>'; });
+    h+='<div class="brow"><span class="bl">'+L.name+'（'+mdF(L.from)+'–'+mdF(L.to)+'）</span><span class="bv">預估 '+(loc.length?loc.join(" ＋ ")+" ≈ ":"")+'NT$'+thou(lo)+'–'+thou(hi)+' ｜ 實際 NT$'+thou(ntR(act.per[L.id]))+'</span></div>'; });
   var G=estGrand();
   h+='<div class="brow g"><span class="bl">預估合計（已勾選正餐 × '+PEOPLE+' 人）</span><span class="bv">NT$'+thou(G[0])+'–'+thou(G[1])+'</span></div>';
-  h+='<div class="lt">僅含已勾選的正餐；零食、交通、門票另計。勾選或匯率變動即時重算。</div>';
+  h+='<div class="brow g"><span class="bl">實際合計（記帳 '+act.n+' 筆，即時同步）</span><span class="bv">NT$'+thou(ntR(act.g))+'</span></div>';
+  h+='<div class="lt">預估＝已勾選正餐 × 人數；實際＝下方記帳自動同步。'+(G[1]===0?'目前還沒勾選任何正餐——到各天「今天吃什麼」按「＋ 排入」，預估會立刻出現。':'零食、交通、門票請用記帳登錄。')+'</div>';
   box.innerHTML=h; }
 function expCurTxt(c){ return c==="TWD"?"NT$":(c==="EUR"?"€":"SEK "); }
 function renderLedger(){
@@ -824,7 +828,7 @@ function addExp(){
     cur:document.getElementById("xCur").value, amt:Math.round(amt*100)/100,
     note:(document.getElementById("xNote").value||"").trim(), img:PENDIMG });
   PENDIMG=null; var pv=document.getElementById("rcpPrev"); if(pv){pv.style.display="none"; pv.src="";}
-  document.getElementById("xAmt").value=""; document.getElementById("xNote").value=""; updXPreview();
+  document.getElementById("xAmt").value=""; document.getElementById("xNote").value=""; updXPreview(); ocrMsg("");
   saveExp(); renderLedger(); toast(STORE_OK?"已記一筆":"已記一筆（未自動保存，記得匯出）");
 }
 function delExp(id){ EXP=EXP.filter(function(e){return e.id!==id;}); saveExp(); renderLedger(); }
@@ -835,12 +839,54 @@ function pickRcp(inp){ var f=inp.files&&inp.files[0]; inp.value=""; if(!f) retur
       c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
       c.getContext("2d").drawImage(img,0,0,c.width,c.height);
       PENDIMG=c.toDataURL("image/jpeg",0.72);
+      var oc=document.createElement("canvas"), om=Math.max(img.width,img.height), os=om>1500?1500/om:1;
+      oc.width=Math.round(img.width*os); oc.height=Math.round(img.height*os);
+      oc.getContext("2d").drawImage(img,0,0,oc.width,oc.height);
       var pv=document.getElementById("rcpPrev"); pv.src=PENDIMG; pv.style.display="inline-block";
       syncCur();
       var cc=document.getElementById("xCur").value;
-      toast("收據已附上 · 幣別自動判定 "+(cc==="EUR"?"€（塔林段）":"SEK（瑞典段）")+"，填金額按「＋ 新增」"); };
+      toast("收據已附上 · 幣別自動判定 "+(cc==="EUR"?"€（塔林段）":"SEK（瑞典段）"));
+      runOcr(oc.toDataURL("image/jpeg",0.85)); };
     img.src=rd.result; };
   rd.readAsDataURL(f);
+}
+/* ---- 收據金額辨識（裝置端 OCR · Beta） ---- */
+var OCRBUSY=false;
+function ocrMsg(t){ var el=document.getElementById("ocrStat"); if(el) el.textContent=t||""; }
+function loadTess(cb){ if(window.Tesseract){ cb(true); return; }
+  var sc=document.createElement("script");
+  sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+  sc.onload=function(){ cb(!!window.Tesseract); };
+  sc.onerror=function(){ cb(false); };
+  document.head.appendChild(sc); }
+function extractAmount(text){
+  var kw=/(kokku|total|totalt|summa|att betala|yhteens|betala|amount|sum)/i;
+  var moneyRe=/(\d{1,4}[.,]\d{2})(?!\d)/g;
+  var all=[];
+  String(text||"").split(/\n/).forEach(function(ln){
+    ln=ln.replace(/\b\d{1,2}[.,\/]\d{1,2}[.,\/]\d{2,4}\b/g," ").replace(/\b\d{1,2}:\d{2}\b/g," ");
+    var m; while((m=moneyRe.exec(ln))){
+      var v=parseFloat(m[1].replace(",","."));
+      if(v>=0.5 && v<=99999) all.push({v:v, kw:kw.test(ln)});
+    }
+  });
+  if(!all.length) return null;
+  var pool=all.filter(function(a){return a.kw;}); if(!pool.length) pool=all;
+  return Math.max.apply(null, pool.map(function(a){return a.v;}));
+}
+function runOcr(src){ if(OCRBUSY) return; OCRBUSY=true;
+  ocrMsg("🔍 辨識金額中…（首次使用需下載引擎，約十幾秒）");
+  loadTess(function(okk){
+    if(!okk){ OCRBUSY=false; ocrMsg("辨識引擎載入失敗（需連網）— 請手動輸入金額"); return; }
+    Tesseract.recognize(src,"eng").then(function(r){
+      OCRBUSY=false;
+      var v=extractAmount(r&&r.data&&r.data.text);
+      var amtEl=document.getElementById("xAmt");
+      if(v){ if(amtEl && !amtEl.value){ amtEl.value=v; updXPreview(); }
+        ocrMsg("✓ 辨識到 "+v+"（抓取合計行）— 請核對後按「＋ 新增」"); }
+      else ocrMsg("沒抓到明確金額 — 請手動輸入");
+    }).catch(function(){ OCRBUSY=false; ocrMsg("辨識失敗 — 請手動輸入金額"); });
+  });
 }
 function showReceipt(id){ var e=null; EXP.forEach(function(x){ if(x.id===id) e=x; }); if(!e) return;
   showDetail("記帳 · "+mdF(e.date)+"（"+((legFor(e.date)||{}).name||"")+"）",
