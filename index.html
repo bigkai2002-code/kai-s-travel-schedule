@@ -3,13 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>斯德哥爾摩 × 塔林 · 路線式行程規劃 v3</title>
+<title>斯德哥爾摩 × 塔林 · 路線式行程規劃 v4</title>
 <style>
   :root{
     --paper:#ECEFEC; --card:#ffffff; --ink:#15323C; --soft:#52676E; --faint:#7E9097;
     --line:#D6DDD9; --lock:#9AA3A0; --lockbg:#E7EAE7; --locktext:#8A938F;
     --se:#5A7184;
     --ferry:#2C3E45;
+    --cn:#8E3B2F;
     /* Tallinn */
     --r-oldtown:#C0612B; --r-market:#3F7D54; --r-coast:#2E6E96; --r-trip:#5E7B3A; --r-helsinki:#5B5391;
     /* Stockholm */
@@ -274,6 +275,18 @@
 
   @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
+  /* ---- 北京過境 · 固定動線卡 ---- */
+  .bj{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--cn);border-radius:12px;padding:14px 16px;margin:10px 0}
+  .bj .bt{font-family:var(--serif);font-size:16.5px;font-weight:700;color:var(--ink);margin-bottom:2px}
+  .bj .bs{font-size:12.5px;color:var(--soft);margin-bottom:10px}
+  .bjrow{display:flex;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:13.5px;line-height:1.55}
+  .bjrow:first-of-type{border-top:0}
+  .bjrow .tm{flex:0 0 52px;font-weight:700;color:var(--cn);font-variant-numeric:tabular-nums}
+  .bjrow .bx{flex:1;color:var(--ink)}
+  .bjrow .bx small{display:block;color:var(--soft);font-size:12px;margin-top:1px}
+  .bjrow.hl .bx b{color:var(--cn)}
+  .bjtips{background:var(--lockbg);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12.5px;color:var(--soft);line-height:1.6}
+  .bjtips b{color:var(--ink)}
   @media print{
     body{background:#fff;padding:0}
     .noprint{display:none!important}
@@ -289,13 +302,13 @@
 <div class="wrap">
 
   <header class="top">
-    <div class="eyebrow">Baltic Radial Trip · 路線式規劃 v3</div>
+    <div class="eyebrow">Baltic Radial Trip · 路線式規劃 v4 · 含北京過境</div>
     <h1 class="mast">斯德哥爾摩<span class="x">×</span>塔林</h1>
-    <p class="mast-sub">兩座城市都用同一套邏輯：一天一條路線，吃跟著路線走——選了哪一區，只有那區的餐廳會亮起來。全程日期已對齊：7/4 晚班機去、7/10 晚渡輪回，7/11–12 斯京收尾。</p>
+    <p class="mast-sub">兩座城市都用同一套邏輯：一天一條路線，吃跟著路線走——選了哪一區，只有那區的餐廳會亮起來。全程日期已對齊：7/4 晚班機去、7/10 晚渡輪回，7/11–12 斯京收尾，7/13–14 北京過境走一圈再回家。</p>
     <div class="facts">
-      <div class="f"><div class="n">6/30–7/12</div><div class="l">出發→返抵</div></div>
-      <div class="f"><div class="n">12 晚</div><div class="l">地面天數</div></div>
-      <div class="f"><div class="n">5 + 6</div><div class="l">斯京·塔林（晚）</div></div>
+      <div class="f"><div class="n">6/30–7/14</div><div class="l">出發→返抵</div></div>
+      <div class="f"><div class="n">13 晚</div><div class="l">地面天數</div></div>
+      <div class="f"><div class="n">5+6+1</div><div class="l">斯京·塔林·北京</div></div>
       <div class="f"><div class="n">✈ + ⛴</div><div class="l">去飛 · 回船</div></div>
       <div class="f"><div class="n">0 🚗</div><div class="l">純大眾運輸</div></div>
     </div>
@@ -364,16 +377,50 @@
   <!-- 返程日 = 斯京 Day 6 -->
   <div class="days" id="seDay5"></div>
 
+  <div class="leg"><span class="ico">✈</span> 航班 7/12（日）19:10 CA912 斯德哥爾摩 → 7/13（一）08:50 抵北京 PEK T3（過夜航班）</div>
+
+  <!-- ===== 北京過境 ===== -->
+  <div class="sec-head"><h2>北京過境 · 走一圈</h2><span class="tag">7/13–14 · 約 24 小時 · 行程固定</span></div>
+  <p class="note">住宿在機場旁天竺（明豪華華美達 · 新國展店），進出城全靠滴滴。這一天的任務：補上次沒走到的天安門——不進廣場、車上路過看城樓就好，重心放在能走路的景山、胡同與前門。</p>
+  <div class="wxstrip noprint" id="cnWx"></div>
+
+  <div class="bj">
+    <div class="bt">7/13（一）· 落地即出發</div>
+    <div class="bs">宿：北京明豪華美達飯店（首都機場新國展店）· 順義區天竺鎮府前一街 13 號 · 14:00 後入住</div>
+    <div class="bjrow"><span class="tm">08:50</span><span class="bx">CA912 抵 PEK T3 → 邊檢入境＋提行李<small>台胞證隨身；四人加行李，抓 1–1.5 小時</small></span></div>
+    <div class="bjrow"><span class="tm">10:15</span><span class="bx">先到飯店<b>寄行李</b>（距機場約 10 分鐘）<small>滴滴 ¥25–35；14:00 才能入住，輕裝出發最省時</small></span></div>
+    <div class="bjrow"><span class="tm">10:45</span><span class="bx">滴滴進城，目的地設「<b>四季民福烤鴨店（故宮店）</b>」<small>約 50–70 分 · ¥110–150；到店先取號等位</small></span></div>
+    <div class="bjrow"><span class="tm">12:00</span><span class="bx">午餐 · 四季民福（故宮店）烤鴨<small>窗邊看故宮筒子河與角樓 · 人均 ¥120–180</small></span></div>
+    <div class="bjrow"><span class="tm">13:30</span><span class="bx"><b>景山公園</b>：登萬春亭，紫禁城中軸線全景<small>門票 ¥2 · 爬約 10 分鐘，Danny 拍全景的制高點</small></span></div>
+    <div class="bjrow"><span class="tm">15:00</span><span class="bx"><b>什剎海 → 煙袋斜街 → 南鑼鼓巷</b> 胡同散步<small>沿路冰品、酸奶補水；累了隨時找咖啡店躲太陽</small></span></div>
+    <div class="bjrow hl"><span class="tm">17:30</span><span class="bx">滴滴上車跟司機說「<b>走長安街</b>」由西往東——<b>天安門城樓、華表、廣場</b>車上直接看<small>不用預約、不用安檢 ✅ 上次的遺憾這一段補回來</small></span></div>
+    <div class="bjrow"><span class="tm">18:00</span><span class="bx"><b>前門大街＋大柵欄</b>：正陽門箭樓、鐺鐺車、老字號小吃<small>從前門北望就是天安門廣場南端，黃昏光線正好拍照</small></span></div>
+    <div class="bjrow"><span class="tm">19:00</span><span class="bx">晚餐 · 前門一帶<small>中午沒吃到烤鴨就補「四季民福前門店」；或大柵欄小吃巡禮（爆肚、炸醬麵、糖葫蘆）</small></span></div>
+    <div class="bjrow"><span class="tm">20:30</span><span class="bx">滴滴回飯店（約 1 小時 · ¥110–150）· 正式入住<small>隔天早班機，別戀戰——這天從落地已經跑了 12 小時</small></span></div>
+  </div>
+
+  <div class="bj">
+    <div class="bt">7/14（二）· 回家日</div>
+    <div class="bs">只有一件事：準時到機場。</div>
+    <div class="bjrow"><span class="tm">05:40</span><span class="bx">退房出發 → PEK T3<small>滴滴約 10 分鐘；早班國際線人多，寧早勿晚</small></span></div>
+    <div class="bjrow"><span class="tm">08:00</span><span class="bx">登機（艙門起飛前 15 分鐘關）</span></div>
+    <div class="bjrow hl"><span class="tm">08:25</span><span class="bx">CA185 起飛 → <b>11:40 抵桃園 T2</b> 🏠<small>回宜蘭路上剛好一家人午餐</small></span></div>
+  </div>
+
+  <div class="bjtips">
+    <b>過境備忘</b> · 天安門「進廣場」要提前微信小程序預約＋排安檢——路過看不用，當天名額基本搶不到，別排這個。長安街偶有臨時管制，司機會改走平行路，從前門側一樣看得到城樓。支付寶（已綁卡）＋滴滴上次都用過直接沿用，現金 ¥100–200 壓底。7 月中北京 33–36°C，比波羅的海熱一大截——水、帽子、防曬別省。
+  </div>
+
   <!-- ===== 旅費 ===== -->
   <div class="sec-head"><h2>旅費 · 預算與記帳</h2><span class="tag">預估自動加總 · 實際拍照＋手動</span></div>
   <div class="budget" id="budgetBox"></div>
   <div class="ledger">
     <div style="font-family:var(--serif);font-size:16px;font-weight:600;margin:0 0 3px">記帳（分段統計）</div>
-    <div style="font-size:12.5px;color:var(--soft);margin-bottom:10px">拍下收據或手動輸入，依日期自動歸到「斯京去程／塔林／斯京返程」三段；幣別依日期自動判定（塔林段＝€、瑞典段＝SEK）。拍照後會自動嘗試辨識金額（Beta，請核對後再新增）。<span id="storeNote"></span></div>
+    <div style="font-size:12.5px;color:var(--soft);margin-bottom:10px">拍下收據或手動輸入，依日期自動歸到「斯京去程／塔林／斯京返程／北京過境」四段；幣別依日期自動判定（塔林段＝€、瑞典段＝SEK、北京段＝¥）。拍照後會自動嘗試辨識金額（Beta，請核對後再新增）。<span id="storeNote"></span></div>
     <div class="lrow noprint" style="flex-wrap:wrap;gap:8px;margin-bottom:4px">
-      <input type="date" id="xDate" class="lin" style="flex:0 0 150px" min="2026-06-30" max="2026-07-12" onchange="syncCur()">
+      <input type="date" id="xDate" class="lin" style="flex:0 0 150px" min="2026-06-30" max="2026-07-14" onchange="syncCur()">
       <select id="xCat" class="dest" style="padding:7px 9px"><option>餐飲</option><option>交通</option><option>門票</option><option>購物</option><option>住宿</option><option>其他</option></select>
-      <select id="xCur" class="dest" style="padding:7px 9px" onchange="updXPreview()"><option value="SEK">SEK</option><option value="EUR">EUR</option><option value="TWD">NT$</option></select>
+      <select id="xCur" class="dest" style="padding:7px 9px" onchange="updXPreview()"><option value="SEK">SEK</option><option value="EUR">EUR</option><option value="CNY">¥ CNY</option><option value="TWD">NT$</option></select>
       <input type="number" id="xAmt" class="lin" placeholder="金額" style="flex:0 0 100px" inputmode="decimal" oninput="updXPreview()"><span class="lstat" id="xNt" style="flex:0 0 auto;min-width:80px"></span>
       <input id="xNote" class="lin" placeholder="備註（店名／品項）">
       <button class="lbtn" onclick="document.getElementById('rcpFile').click()">📷 拍收據</button>
@@ -392,7 +439,7 @@
   <!-- ===== 我的行程 ===== -->
   <div class="summary" id="summary">
     <h2>我的行程</h2>
-    <div class="sn">Stockholm + Tallinn · 即時更新</div>
+    <div class="sn">Stockholm + Tallinn + Beijing 過境 · 即時更新</div>
     <div id="sbody"></div>
     <div class="actions noprint">
       <button class="btn-pri" onclick="copyPlan()">複製行程</button>
@@ -733,7 +780,9 @@ var STAYS = [
   {city:"斯京", name:"Generator Stockholm", q:"Generator Stockholm", from:"2026-06-30", to:"2026-07-03"},
   {city:"塔林", name:"Hilton Tallinn Park", q:"Hilton Tallinn Park", from:"2026-07-04", to:"2026-07-09"},
   {city:"海上", name:"Baltic Queen 過夜渡輪", q:"", from:"2026-07-10", to:"2026-07-10", fixed:true},
-  {city:"斯京", name:"Generator Stockholm（暫定）", q:"Generator Stockholm", from:"2026-07-11", to:"2026-07-11"}
+  {city:"斯京", name:"Generator Stockholm（暫定）", q:"Generator Stockholm", from:"2026-07-11", to:"2026-07-11"},
+  {city:"機上", name:"CA912 過夜航班", q:"", from:"2026-07-12", to:"2026-07-12", fixed:true},
+  {city:"北京", name:"明豪華美達（首都機場新國展店）", q:"Ramada Beijing Airport", from:"2026-07-13", to:"2026-07-13"}
 ];
 function isoAdd(iso,n){ var d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n);
   return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
@@ -762,7 +811,8 @@ function renderStays(){
 var LEGS=[
   {id:"a", name:"斯京 · 去程", from:"2026-06-30", to:"2026-07-04", days:[["se",1],["se",2],["se",3],["se",4],["se",5]]},
   {id:"b", name:"塔林", from:"2026-07-05", to:"2026-07-10", days:[["ee",1],["ee",2],["ee",3],["ee",4],["ee",5],["ee",6]]},
-  {id:"c", name:"斯京 · 返程", from:"2026-07-11", to:"2026-07-12", days:[["se",6],["se",7]]}
+  {id:"c", name:"斯京 · 返程", from:"2026-07-11", to:"2026-07-12", days:[["se",6],["se",7]]},
+  {id:"d", name:"北京 · 過境", from:"2026-07-13", to:"2026-07-14", days:[]}
 ];
 function legFor(date){ for(var i=0;i<LEGS.length;i++){ if(date>=LEGS[i].from&&date<=LEGS[i].to) return LEGS[i]; } return null; }
 var PEOPLE=4, EXP=[], PENDIMG=null, STORE_OK=true;
@@ -781,7 +831,7 @@ function estGrand(){ var lo=0,hi=0;
     lo+=(t.SEK[0]*fxRate("SEK")+t.EUR[0]*fxRate("EUR"))*PEOPLE;
     hi+=(t.SEK[1]*fxRate("SEK")+t.EUR[1]*fxRate("EUR"))*PEOPLE; });
   return [ntR(lo),ntR(hi)]; }
-function actualNt(){ var per={a:0,b:0,c:0}, g=0, n=0;
+function actualNt(){ var per={a:0,b:0,c:0,d:0}, g=0, n=0;
   EXP.forEach(function(e){ var L=legFor(e.date)||LEGS[0]; var v=(+e.amt)*fxRate(e.cur); per[L.id]+=v; g+=v; n++; });
   return {per:per, g:g, n:n}; }
 function renderBudget(){ var box=document.getElementById("budgetBox"); if(!box) return; var h=""; var act=actualNt();
@@ -796,15 +846,15 @@ function renderBudget(){ var box=document.getElementById("budgetBox"); if(!box) 
   h+='<div class="brow g"><span class="bl">實際合計（記帳 '+act.n+' 筆，即時同步）</span><span class="bv">NT$'+thou(ntR(act.g))+'</span></div>';
   h+='<div class="lt">預估＝已勾選正餐 × 人數；實際＝下方記帳自動同步。'+(G[1]===0?'目前還沒勾選任何正餐——到各天「今天吃什麼」按「＋ 排入」，預估會立刻出現。':'零食、交通、門票請用記帳登錄。')+'</div>';
   box.innerHTML=h; }
-function expCurTxt(c){ return c==="TWD"?"NT$":(c==="EUR"?"€":"SEK "); }
+function expCurTxt(c){ return c==="TWD"?"NT$":(c==="EUR"?"€":(c==="CNY"?"¥":"SEK ")); }
 function renderLedger(){
   var lt=document.getElementById("ledgerTotals"), ll=document.getElementById("ledgerList"); if(!lt||!ll) return;
   var per={}, cats={}, g=0;
-  LEGS.forEach(function(L){ per[L.id]={SEK:0,EUR:0,TWD:0,nt:0}; });
+  LEGS.forEach(function(L){ per[L.id]={SEK:0,EUR:0,CNY:0,TWD:0,nt:0}; });
   EXP.forEach(function(e){ var L=legFor(e.date)||LEGS[0]; per[L.id][e.cur]+=(+e.amt); var v=(+e.amt)*fxRate(e.cur); per[L.id].nt+=v; g+=v; cats[e.cat]=(cats[e.cat]||0)+v; });
   var h="";
-  LEGS.forEach(function(L){ var p=per[L.id]; if(!(p.SEK||p.EUR||p.TWD)) return;
-    var loc=[]; if(p.SEK) loc.push("SEK "+Math.round(p.SEK)); if(p.EUR) loc.push("€"+eF(p.EUR)); if(p.TWD) loc.push("NT$"+thou(Math.round(p.TWD)));
+  LEGS.forEach(function(L){ var p=per[L.id]; if(!(p.SEK||p.EUR||p.CNY||p.TWD)) return;
+    var loc=[]; if(p.SEK) loc.push("SEK "+Math.round(p.SEK)); if(p.EUR) loc.push("€"+eF(p.EUR)); if(p.CNY) loc.push("¥"+eF(p.CNY)); if(p.TWD) loc.push("NT$"+thou(Math.round(p.TWD)));
     h+='<div class="brow"><span class="bl">'+L.name+'</span><span class="bv">'+loc.join(" ＋ ")+' ≈ NT$'+thou(ntR(p.nt))+'</span></div>'; });
   h+='<div class="brow g"><span class="bl">實際合計（'+EXP.length+' 筆）</span><span class="bv">NT$'+thou(ntR(g))+'</span></div>';
   var ck=Object.keys(cats);
@@ -821,7 +871,7 @@ function renderLedger(){
 }
 function addExp(){
   var dt=document.getElementById("xDate").value||todayISO();
-  if(dt<"2026-06-30") dt="2026-06-30"; if(dt>"2026-07-12") dt="2026-07-12";
+  if(dt<"2026-06-30") dt="2026-06-30"; if(dt>"2026-07-14") dt="2026-07-14";
   var amt=parseFloat(document.getElementById("xAmt").value);
   if(!(amt>0)){ toast("請先輸入金額"); return; }
   EXP.push({ id:Date.now(), date:dt, cat:document.getElementById("xCat").value,
@@ -845,7 +895,7 @@ function pickRcp(inp){ var f=inp.files&&inp.files[0]; inp.value=""; if(!f) retur
       var pv=document.getElementById("rcpPrev"); pv.src=PENDIMG; pv.style.display="inline-block";
       syncCur();
       var cc=document.getElementById("xCur").value;
-      toast("收據已附上 · 幣別自動判定 "+(cc==="EUR"?"€（塔林段）":"SEK（瑞典段）"));
+      toast("收據已附上 · 幣別自動判定 "+(cc==="EUR"?"€（塔林段）":(cc==="CNY"?"¥（北京段）":"SEK（瑞典段）")));
       runOcr(oc.toDataURL("image/jpeg",0.85)); };
     img.src=rd.result; };
   rd.readAsDataURL(f);
@@ -892,7 +942,7 @@ function showReceipt(id){ var e=null; EXP.forEach(function(x){ if(x.id===id) e=x
   showDetail("記帳 · "+mdF(e.date)+"（"+((legFor(e.date)||{}).name||"")+"）",
     e.cat+" · "+expCurTxt(e.cur)+e.amt, e.note||"（無備註）", "var(--ink)", null, e.img||null); }
 function todayISO(){ var t=new Date(); return t.getFullYear()+"-"+pad2(t.getMonth()+1)+"-"+pad2(t.getDate()); }
-function curForDate(dt){ var L=legFor(dt); return (L&&L.id==="b") ? "EUR" : "SEK"; }
+function curForDate(dt){ var L=legFor(dt); if(L&&L.id==="d") return "CNY"; return (L&&L.id==="b") ? "EUR" : "SEK"; }
 function syncCur(){ var d=document.getElementById("xDate").value||todayISO();
   var sel=document.getElementById("xCur"); if(sel) sel.value=curForDate(d); updXPreview(); }
 function updXPreview(){ var el=document.getElementById("xNt"); if(!el) return;
@@ -1005,7 +1055,7 @@ function wxAdvice(b,d,key,w){
 
 /* ================= LIVE 預報（Open-Meteo，免金鑰） ================= */
 function eeISO(d){ var n=4+d; return "2026-07-"+(n<10?"0"+n:n); }
-var WXF={sthlm:{},tln:{},ts:null};
+var WXF={sthlm:{},tln:{},bj:{},ts:null};
 function wIco(c){ if(c===0)return "☀️"; if(c<=2)return "🌤"; if(c===3)return "☁️"; if(c===45||c===48)return "🌫️";
   if(c>=51&&c<=57)return "🌦"; if(c>=61&&c<=67)return "🌧"; if(c>=71&&c<=77)return "🌨"; if(c>=80&&c<=82)return "🌦"; if(c>=95)return "⛈"; return "🌡"; }
 function modeFrom(c,pop){ var heavy=[63,65,66,67,81,82,95,96,99], light=[51,53,55,56,57,61,80];
@@ -1019,11 +1069,12 @@ function parseDaily(j,store){ var D=j&&j.daily; if(!D||!D.time) return;
     store[iso]={ icon:wIco(D.weather_code[i]), tmax:D.temperature_2m_max[i], tmin:D.temperature_2m_min[i], pop:pop, mode:modeFrom(D.weather_code[i],pop) }; }); }
 function fetchWeather(){ setTxt("wxStatus","預報載入中…");
   var now=new Date(), start=now.getFullYear()+"-"+pad2(now.getMonth()+1)+"-"+pad2(now.getDate());
-  var q="https://api.open-meteo.com/v1/forecast?daily=weather_code,precipitation_probability_max,temperature_2m_max,temperature_2m_min&timezone=auto&start_date="+start+"&end_date=2026-07-12";
+  var q="https://api.open-meteo.com/v1/forecast?daily=weather_code,precipitation_probability_max,temperature_2m_max,temperature_2m_min&timezone=auto&start_date="+start+"&end_date=2026-07-14";
   Promise.all([
     fetch(q+"&latitude=59.3293&longitude=18.0686").then(function(r){return r.json();}),
-    fetch(q+"&latitude=59.4370&longitude=24.7536").then(function(r){return r.json();})
-  ]).then(function(rs){ WXF.sthlm={}; WXF.tln={}; parseDaily(rs[0],WXF.sthlm); parseDaily(rs[1],WXF.tln); WXF.ts=new Date();
+    fetch(q+"&latitude=59.4370&longitude=24.7536").then(function(r){return r.json();}),
+    fetch(q+"&latitude=39.9042&longitude=116.4074").then(function(r){return r.json();}).catch(function(){return null;})
+  ]).then(function(rs){ WXF.sthlm={}; WXF.tln={}; WXF.bj={}; parseDaily(rs[0],WXF.sthlm); parseDaily(rs[1],WXF.tln); if(rs[2]) parseDaily(rs[2],WXF.bj); WXF.ts=new Date();
     setTxt("wxStatus","已更新 "+hm(WXF.ts)+"（Open-Meteo）· 已自動依預報標記，可手動調整"); applyAllWx(true);
   }).catch(function(){ setTxt("wxStatus","連線失敗 — 可手動標記天氣，稍後再按更新"); });
 }
@@ -1042,6 +1093,12 @@ function wxStripHtml(b){
 function renderWxStrips(){
   var s=document.getElementById("seWx"); if(s) s.innerHTML=wxStripHtml("se");
   var e=document.getElementById("eeWx"); if(e) e.innerHTML=wxStripHtml("ee");
+  var c=document.getElementById("cnWx");
+  if(c){ var out="";
+    ["2026-07-13","2026-07-14"].forEach(function(iso){ var f=WXF.bj[iso]; if(!f) return;
+      var tdy=(iso===todayISO());
+      out+='<div class="wxchip'+(tdy?" tdy":"")+'" style="cursor:default"><b>'+(tdy?"今天 · ":"")+mdF(iso)+'（'+wd(iso)+'）</b>'+f.icon+' '+Math.round(f.tmin)+'–'+Math.round(f.tmax)+'° · 💧'+f.pop+'%</div>'; });
+    c.innerHTML=out; }
 }
 function applyAllWx(quiet){ var n=0;
   [["se",BOARDS.se.count],["ee",BOARDS.ee.count]].forEach(function(bc){ var b=bc[0];
@@ -1088,8 +1145,8 @@ var SNACKPRICE=[{cur:"EUR",lo:0.4,hi:0.9,u:"每條"},{cur:"EUR",lo:1.5,hi:3,u:"�
 FIKAPRICE.forEach(function(p,i){ if(FIKA[i]) FIKA[i].price=p; });
 SNACKPRICE.forEach(function(p,i){ if(SNACKS[i]) SNACKS[i].price=p; });
 
-var FX={mode:"local",eur:null,sek:null,ts:null,fallback:{eur:36,sek:2.95}};
-function fxRate(cur){ if(cur==="TWD") return 1; return cur==="EUR"?(FX.eur||FX.fallback.eur):(FX.sek||FX.fallback.sek); }
+var FX={mode:"local",eur:null,sek:null,cny:null,ts:null,fallback:{eur:36,sek:2.95,cny:4.3}};
+function fxRate(cur){ if(cur==="TWD") return 1; if(cur==="EUR") return FX.eur||FX.fallback.eur; if(cur==="CNY") return FX.cny||FX.fallback.cny; return FX.sek||FX.fallback.sek; }
 function ntR(n){ n=Math.round(n); return n>=1000?Math.round(n/10)*10:n; }
 function thou(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
 function eF(x){ return (x<10&&x%1!==0)?x.toFixed(1):String(Math.round(x)); }
@@ -1102,10 +1159,10 @@ function setCur(c){ FX.mode=c;
 function fetchFX(){ setTxt("fxStatus","匯率載入中…");
   fetch("https://open.er-api.com/v6/latest/EUR").then(function(r){return r.json();}).then(function(j){
     if(!(j&&j.rates&&j.rates.TWD&&j.rates.SEK)) throw 0;
-    FX.eur=j.rates.TWD; FX.sek=j.rates.TWD/j.rates.SEK; FX.ts=new Date();
-    setTxt("fxStatus","1€≈NT$"+FX.eur.toFixed(1)+" · 1 SEK≈NT$"+FX.sek.toFixed(2)+"（"+hm(FX.ts)+" 即時）"); render();
+    FX.eur=j.rates.TWD; FX.sek=j.rates.TWD/j.rates.SEK; if(j.rates.CNY) FX.cny=j.rates.TWD/j.rates.CNY; FX.ts=new Date();
+    setTxt("fxStatus","1€≈NT$"+FX.eur.toFixed(1)+" · 1 SEK≈NT$"+FX.sek.toFixed(2)+" · ¥1≈NT$"+(FX.cny||FX.fallback.cny).toFixed(2)+"（"+hm(FX.ts)+" 即時）"); render();
   }).catch(function(){ FX.ts=null;
-    setTxt("fxStatus","連線失敗 · 備用匯率 1€≈NT$"+FX.fallback.eur+"、1 SEK≈NT$"+FX.fallback.sek); render(); });
+    setTxt("fxStatus","連線失敗 · 備用匯率 1€≈NT$"+FX.fallback.eur+"、1 SEK≈NT$"+FX.fallback.sek+"、¥1≈NT$"+FX.fallback.cny); render(); });
 }
 
 var PLAN = { se:{}, ee:{4:{region:"helsinki",meals:[]}} }; /* 7/8 原定赫爾辛基，先排上、可搬動 */
@@ -1261,6 +1318,9 @@ function renderSummary(){
   html+=ferryRow("7/10 18:00（塔林時間）過夜渡輪 → 7/11 10:30 抵斯京（瑞典時間）");
   html+=summaryRow("se",6);
   html+=summaryRow("se",7);
+  html+=ferryRow("7/12 19:10 CA912 → 7/13 08:50 抵北京 PEK T3（過夜航班）","✈");
+  html+='<div class="srow" style="--dc:var(--cn)"><div class="sd">7/13</div><div class="sdot"></div><div class="smain"><b>北京走一圈</b><div class="smeals">四季民福烤鴨 → 景山萬春亭 → 什剎海·南鑼鼓巷 → 長安街車看天安門 → 前門大柵欄</div><div class="smeals">宿 · 明豪華美達（首都機場新國展店）</div></div></div>';
+  html+=ferryRow("7/14 08:25 CA185 → 11:40 抵桃園 T2 🏠","✈");
   document.getElementById("sbody").innerHTML=html;
 }
 function renderSnacksAll(){
@@ -1342,6 +1402,10 @@ function planText(){
     if(rg) lines.push("   "+getDep("se",g)+" 出發 → 約 "+addMin(getDep("se",g),rg.tt)+" 抵（"+rg.via+"）");
     if(rg&&pg.meals.length) lines.push("   食："+pg.meals.map(function(id){return BOARDS.se.fmap[id].name;}).join("、"));
   }
+  lines.push("✈ 7/12 19:10 CA912 → 7/13 08:50 抵北京 PEK T3（過夜航班）","");
+  lines.push("── 北京過境（7/13–14 · 宿 明豪華美達 首都機場新國展店）──");
+  lines.push("7/13｜四季民福烤鴨（故宮店）→ 景山萬春亭 → 什剎海·南鑼鼓巷 → 長安街車看天安門 → 前門大柵欄");
+  lines.push("7/14｜05:40 出發 → 08:25 CA185 → 11:40 抵桃園 T2");
   lines.push("","Fika（瑞典）：kanelbulle、kardemummabulle、prinsesstårta、räkmacka、lösgodis");
   lines.push("隨手抓（愛沙尼亞）：kohuke、黑麥麵包、煙燻黍鯡、Vana Tallinn");
   var G=estGrand();
@@ -1368,7 +1432,7 @@ loadPlan();
 Array.prototype.forEach.call(document.querySelectorAll("#curSeg button"),function(x){ x.classList.toggle("on",x.dataset.c===FX.mode); });
 renderStays();
 (function(){ var xd=document.getElementById("xDate"); if(xd){ var ti=todayISO();
-  xd.value = ti<"2026-06-30" ? "2026-06-30" : (ti>"2026-07-12" ? "2026-07-12" : ti); syncCur(); } })();
+  xd.value = ti<"2026-06-30" ? "2026-06-30" : (ti>"2026-07-14" ? "2026-07-14" : ti); syncCur(); } })();
 render();
 updStoreNotes();
 fetchWeather();
